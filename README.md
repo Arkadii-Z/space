@@ -1,474 +1,691 @@
-import pygame
-import sys
-import random
-import math
-from pygame import mixer
-
-# Инициализация pygame
-pygame.init()
-mixer.init()
-
-# Размеры окна
-SCREEN_WIDTH = 1024
-SCREEN_HEIGHT = 768
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("🐾 Мультяшные питомцы - Забота и веселье! 🎮")
-
-# Цвета
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-BACKGROUND = (240, 248, 255)  # Нежно-голубой фон
-
-# Шрифты
-try:
-    font_title = pygame.font.Font(None, 48)
-    font_large = pygame.font.Font(None, 32)
-    font_medium = pygame.font.Font(None, 24)
-    font_small = pygame.font.Font(None, 18)
-except:
-    font_title = pygame.font.SysFont('arial', 48)
-    font_large = pygame.font.SysFont('arial', 32)
-    font_medium = pygame.font.SysFont('arial', 24)
-    font_small = pygame.font.SysFont('arial', 18)
-
-class MuzzleAnimation:
-    """Класс для мультяшной мордочки с эмоциями"""
-    def __init__(self, pet_type):
-        self.pet_type = pet_type
-        self.emotion = "happy"
-        self.animation_frame = 0
-        self.blink_timer = 0
-        self.blinking = False
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D Солнечная система | Интерактивная модель</title>
+    <meta name="description" content="Интерактивная 3D модель Солнечной системы с реалистичными планетами. Исследуйте космос, управляйте скоростью вращения и изучайте планеты!">
+    <meta name="keywords" content="солнечная система, 3d модель, планеты, космос, интерактивная, three.js">
+    <meta name="author" content="Ваше Имя">
+    <meta property="og:title" content="3D Солнечная система | Интерактивная модель">
+    <meta property="og:description" content="Исследуйте нашу Солнечную систему в интерактивной 3D модели. Управляйте планетами и изучайте космос!">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://raw.githubusercontent.com/username/repository/main/preview.jpg">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌎</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
         
-    def update(self):
-        self.animation_frame += 0.1
-        self.blink_timer += 1
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            color: white;
+            touch-action: none;
+        }
         
-        if self.blink_timer > 120 and not self.blinking:
-            if random.random() < 0.1:
-                self.blinking = True
-                self.blink_timer = 0
-        elif self.blinking and self.blink_timer > 5:
-            self.blinking = False
+        #container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        
+        #ui {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+            padding: 0 10px;
+        }
+        
+        .control-panel {
+            background: rgba(0, 30, 60, 0.85);
+            padding: 12px;
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(0, 100, 255, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 500px;
+            transition: all 0.3s ease;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .panel-header h3 {
+            color: #4db8ff;
+            margin: 0;
+            font-size: 16px;
+        }
+        
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .slider-container label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: rgba(100, 150, 255, 0.3);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4db8ff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.8);
+        }
+        
+        .planet-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 8px;
+        }
+        
+        .planet-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(50, 50, 100, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .planet-btn.active {
+            transform: scale(1.3);
+            box-shadow: 0 0 20px rgba(0, 200, 255, 1);
+            border-color: white;
+        }
+        
+        #title {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(0, 200, 255, 0.8);
+            pointer-events: none;
+            padding: 0 10px;
+        }
+        
+        #instructions {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: #a0d0ff;
+            text-shadow: 0 0 5px rgba(0, 100, 255, 0.5);
+            pointer-events: none;
+            padding: 0 10px;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #4db8ff;
+            text-align: center;
+            padding: 0 20px;
+        }
+        
+        .github-corner {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        
+        .github-corner svg {
+            fill: #4db8ff;
+            color: #000;
+            position: absolute;
+            top: 0;
+            border: 0;
+            right: 0;
+        }
+        
+        .github-corner:hover .octo-arm {
+            animation: octocat-wave 560ms ease-in-out;
+        }
+        
+        @keyframes octocat-wave {
+            0%, 100% { transform: rotate(0); }
+            20%, 60% { transform: rotate(-25deg); }
+            40%, 80% { transform: rotate(10deg); }
+        }
+        
+        @media (max-width: 500px) {
+            .github-corner:hover .octo-arm {
+                animation: none;
+            }
+            .github-corner .octo-arm {
+                animation: octocat-wave 560ms ease-in-out;
+            }
+        }
 
-    def draw(self, surface, x, y, size=1.0):
-        if self.pet_type == "cat":
-            base_color = (255, 150, 100)
-            ear_color = (255, 120, 80)
-        elif self.pet_type == "dog":
-            base_color = (200, 150, 100)
-            ear_color = (180, 130, 90)
-        else:
-            base_color = (100, 200, 255)
-            ear_color = base_color
+        .info-card {
+            position: absolute;
+            background: rgba(0, 30, 60, 0.95);
+            border-radius: 10px;
+            padding: 12px;
+            max-width: 280px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(0, 100, 255, 0.5);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 200;
+            pointer-events: auto;
+            font-size: 14px;
+        }
+        
+        .info-card.visible {
+            opacity: 1;
+        }
+        
+        .info-card h3 {
+            margin-bottom: 8px;
+            color: #4db8ff;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.3);
+            padding-bottom: 4px;
+            font-size: 16px;
+        }
+        
+        .info-card p {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .info-card a {
+            color: #4db8ff;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 5px;
+            pointer-events: auto;
+            font-size: 14px;
+        }
 
-        head_radius = int(40 * size)
-        pygame.draw.circle(surface, base_color, (x, y), head_radius)
+        .mobile-controls {
+            position: absolute;
+            right: 10px;
+            bottom: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 90;
+        }
         
-        if self.pet_type in ["cat", "dog"]:
-            pygame.draw.polygon(surface, ear_color, [
-                (x - 25*size, y - 30*size),
-                (x - 15*size, y - 50*size),
-                (x - 5*size, y - 35*size)
-            ])
-            pygame.draw.polygon(surface, ear_color, [
-                (x + 25*size, y - 30*size),
-                (x + 15*size, y - 50*size),
-                (x + 5*size, y - 35*size)
-            ])
+        .mobile-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0, 30, 60, 0.7);
+            border: 2px solid rgba(100, 200, 255, 0.5);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
 
-        eye_y = y - 10*size
-        left_eye_x = x - 15*size
-        right_eye_x = x + 15*size
-        
-        if self.blinking:
-            pygame.draw.line(surface, BLACK, (left_eye_x-8*size, eye_y), (left_eye_x+8*size, eye_y), 2)
-            pygame.draw.line(surface, BLACK, (right_eye_x-8*size, eye_y), (right_eye_x+8*size, eye_y), 2)
-        else:
-            pygame.draw.circle(surface, WHITE, (left_eye_x, eye_y), int(10*size))
-            pygame.draw.circle(surface, WHITE, (right_eye_x, eye_y), int(10*size))
-            
-            pupil_offset = math.sin(self.animation_frame) * 3*size
-            pygame.draw.circle(surface, BLACK, (left_eye_x + pupil_offset, eye_y), int(5*size))
-            pygame.draw.circle(surface, BLACK, (right_eye_x + pupil_offset, eye_y), int(5*size))
-
-        mouth_y = y + 15*size
-        if self.emotion == "happy":
-            pygame.draw.arc(surface, BLACK, (x-15*size, mouth_y-5*size, 30*size, 20*size), 
-                          math.radians(0), math.radians(180), 2)
-        elif self.emotion == "sad":
-            pygame.draw.arc(surface, BLACK, (x-15*size, mouth_y+5*size, 30*size, 20*size), 
-                          math.radians(180), math.radians(360), 2)
-        elif self.emotion == "eating":
-            chew_offset = math.sin(self.animation_frame * 3) * 2*size
-            pygame.draw.ellipse(surface, (255, 200, 100), 
-                             (x-8*size, mouth_y + chew_offset, 16*size, 8*size))
-        elif self.emotion == "playing":
-            pygame.draw.circle(surface, BLACK, (x, mouth_y), int(5*size))
-
-class CartoonPet:
-    """Мультяшный питомец с продвинутой анимацией"""
-    def __init__(self, name, pet_type, x, y):
-        self.name = name
-        self.pet_type = pet_type
-        self.x = x
-        self.y = y
-        self.hunger = 5
-        self.mood = 5
-        self.tank_cleanliness = 5 if pet_type == "fish" else 0
-        self.muzzle = MuzzleAnimation(pet_type)
-        self.animation_frame = 0
-        self.bounce_offset = 0
-        
-    def update(self):
-        self.animation_frame += 0.1
-        self.bounce_offset = math.sin(self.animation_frame) * 5
-        self.muzzle.update()
-        
-        if self.hunger > 7 or self.mood < 3:
-            self.muzzle.emotion = "sad"
-        else:
-            self.muzzle.emotion = "happy"
-
-    def draw(self, surface):
-        y_pos = self.y + self.bounce_offset
-        
-        if self.pet_type == "cat":
-            self.draw_cat(surface, y_pos)
-        elif self.pet_type == "dog":
-            self.draw_dog(surface, y_pos)
-        else:
-            self.draw_fish(surface, y_pos)
-        
-        self.muzzle.draw(surface, self.x, y_pos - 20)
-        self.draw_status(surface, y_pos)
-
-    def draw_cat(self, surface, y_pos):
-        body_color = (255, 150, 100)
-        pygame.draw.ellipse(surface, body_color, (self.x - 40, y_pos, 80, 40))
-        
-        tail_wiggle = math.sin(self.animation_frame * 2) * 15
-        pygame.draw.arc(surface, body_color, (self.x - 70, y_pos - 20, 40, 60),
-                      math.radians(180), math.radians(180 + tail_wiggle), 10)
-
-    def draw_dog(self, surface, y_pos):
-        body_color = (200, 150, 100)
-        pygame.draw.ellipse(surface, body_color, (self.x - 45, y_pos, 90, 45))
-        
-        tail_wag = math.sin(self.animation_frame * 3) * 20
-        points = [
-            (self.x - 50, y_pos + 20),
-            (self.x - 70, y_pos + 10 + tail_wag),
-            (self.x - 60, y_pos - 10)
-        ]
-        pygame.draw.polygon(surface, body_color, points)
-
-    def draw_fish(self, surface, y_pos):
-        body_color = (100, 200, 255)
-        fish_wiggle = math.sin(self.animation_frame * 4) * 3
-        
-        body_points = [
-            (self.x - 30 + fish_wiggle, y_pos),
-            (self.x + 30 + fish_wiggle, y_pos),
-            (self.x + 20 + fish_wiggle, y_pos + 15),
-            (self.x - 20 + fish_wiggle, y_pos + 15)
-        ]
-        pygame.draw.polygon(surface, body_color, body_points)
-        
-        pygame.draw.polygon(surface, body_color, [
-            (self.x + fish_wiggle, y_pos),
-            (self.x + 15 + fish_wiggle, y_pos - 20),
-            (self.x + 30 + fish_wiggle, y_pos)
-        ])
-
-    def draw_status(self, surface, y_pos):
-        name_text = font_medium.render(self.name, True, BLACK)
-        surface.blit(name_text, (self.x - name_text.get_width()//2, y_pos - 60))
-        
-        bar_width = 60
-        pygame.draw.rect(surface, (200, 200, 200), (self.x - bar_width//2, y_pos + 50, bar_width, 8))
-        pygame.draw.rect(surface, (255, 100, 100), (self.x - bar_width//2, y_pos + 50, bar_width * (self.hunger/10), 8))
-        
-        pygame.draw.rect(surface, (200, 200, 200), (self.x - bar_width//2, y_pos + 62, bar_width, 8))
-        pygame.draw.rect(surface, (255, 255, 100), (self.x - bar_width//2, y_pos + 62, bar_width * (self.mood/10), 8))
-        
-        if self.pet_type == "fish":
-            pygame.draw.rect(surface, (200, 200, 200), (self.x - bar_width//2, y_pos + 74, bar_width, 8))
-            pygame.draw.rect(surface, (100, 200, 255), (self.x - bar_width//2, y_pos + 74, bar_width * (self.tank_cleanliness/10), 8))
-
-    def feed(self):
-        if self.hunger > 0:
-            self.hunger = max(0, self.hunger - 2)
-            self.muzzle.emotion = "eating"
-            return f"{self.name} с удовольствием поел(а)!"
-        return f"{self.name} уже не голоден(а)!"
-
-    def play(self):
-        if self.mood < 10:
-            self.mood = min(10, self.mood + 2)
-            self.hunger = min(10, self.hunger + 1)
-            self.muzzle.emotion = "playing"
-            return f"Вы поиграли с {self.name}!"
-        return f"{self.name} уже счастлив(а)!"
-
-    def clean_tank(self):
-        if self.pet_type == "fish":
-            if self.tank_cleanliness < 10:
-                self.tank_cleanliness = 10
-                self.mood = min(10, self.mood + 1)
-                return "Аквариум теперь чист!"
-            return "Аквариум уже чист!"
-        return "Только для рыбок!"
-
-    def pass_time(self):
-        self.hunger = min(10, self.hunger + 0.05)
-        self.mood = max(0, self.mood - 0.03)
-        if self.pet_type == "fish":
-            self.tank_cleanliness = max(0, self.tank_cleanliness - 0.02)
-
-class BubbleEffect:
-    """Эффект пузырьков для сообщений"""
-    def __init__(self):
-        self.bubbles = []
-        
-    def add_bubble(self, x, y, text, color=(255, 255, 200)):
-        self.bubbles.append({
-            'x': x, 'y': y,
-            'text': text,
-            'color': color,
-            'life': 90,
-            'offset': random.uniform(0, 6.28)
-        })
-        
-    def update(self):
-        for bubble in self.bubbles[:]:
-            bubble['life'] -= 1
-            bubble['y'] -= 1.5
-            if bubble['life'] <= 0:
-                self.bubbles.remove(bubble)
+        .footer {
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: #88c0ff;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    
+    <a href="https://github.com/your-username/solar-system" class="github-corner" aria-label="View source on GitHub">
+        <svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true">
+            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+            <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+            <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+        </svg>
+    </a>
+    
+    <div id="title">СОЛНЕЧНАЯ СИСТЕМА</div>
+    <div id="instructions">Наведите на планету для информации, кликните для поиска</div>
+    
+    <div id="ui">
+        <div class="control-panel">
+            <div class="panel-header">
+                <h3>Управление системой</h3>
+            </div>
+            <div class="panel-content">
+                <div class="slider-container">
+                    <label>
+                        <span>Скорость:</span>
+                        <span id="speed-value">1.0x</span>
+                    </label>
+                    <input type="range" id="rotation-speed" min="0" max="2" step="0.1" value="1">
+                </div>
                 
-    def draw(self, surface):
-        for bubble in self.bubbles:
-            alpha = min(255, bubble['life'] * 3)
-            
-            # Пузырек
-            s = pygame.Surface((120, 50), pygame.SRCALPHA)
-            pygame.draw.ellipse(s, (*bubble['color'], alpha), (0, 0, 120, 50))
-            pygame.draw.ellipse(s, (0, 0, 0, alpha), (0, 0, 120, 50), 2)
-            
-            # Текст
-            text_surf = font_small.render(bubble['text'], True, (0, 0, 0, alpha))
-            text_rect = text_surf.get_rect(center=(60, 25))
-            s.blit(text_surf, text_rect)
-            
-            wobble = math.sin(pygame.time.get_ticks() * 0.01 + bubble['offset']) * 3
-            surface.blit(s, (bubble['x'] - 60 + wobble, bubble['y'] - 25))
-
-class CartoonButton:
-    """Мультяшная кнопка с цветами"""
-    def __init__(self, x, y, width, height, text, color=(255, 200, 100), hover_color=(255, 180, 80)):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.text = text
-        self.color = color
-        self.hover_color = hover_color
-        self.is_hovered = False
-        self.bounce = 0
-        
-    def update(self):
-        if self.is_hovered:
-            self.bounce = math.sin(pygame.time.get_ticks() * 0.01) * 3
-        else:
-            self.bounce = 0
-            
-    def draw(self, surface):
-        button_rect = self.rect.copy()
-        button_rect.y += self.bounce
-        
-        color = self.hover_color if self.is_hovered else self.color
-        pygame.draw.rect(surface, color, button_rect, border_radius=12)
-        pygame.draw.rect(surface, BLACK, button_rect, 3, border_radius=12)
-        
-        text_surf = font_medium.render(self.text, True, BLACK)
-        text_rect = text_surf.get_rect(center=button_rect.center)
-        surface.blit(text_surf, text_rect)
-        
-    def check_hover(self, pos):
-        self.is_hovered = self.rect.collidepoint(pos)
-        return self.is_hovered
-        
-    def is_clicked(self, pos, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            return self.rect.collidepoint(pos)
-        return False
-
-class CartoonGame:
-    """Основной класс игры"""
-    def __init__(self):
-        self.pets = []
-        self.selected_pet = None
-        self.bubbles = BubbleEffect()
-        self.message = "Добро пожаловать! Заведите питомца."
-        self.message_timer = 0
-        
-        # Цветные кнопки
-        self.buttons = [
-            CartoonButton(50, 650, 180, 60, "🐱 Кошка", (255, 200, 150)),
-            CartoonButton(250, 650, 180, 60, "🐶 Собака", (200, 200, 255)),
-            CartoonButton(450, 650, 180, 60, "🐠 Рыбка", (150, 250, 255)),
-            CartoonButton(650, 650, 150, 50, "🍗 Кормить", (255, 150, 150)),
-            CartoonButton(810, 650, 150, 50, "🎮 Играть", (150, 255, 150)),
-            CartoonButton(650, 710, 150, 50, "✨ Чистить", (150, 200, 255)),
-            CartoonButton(810, 710, 150, 50, "📊 Статус", (255, 255, 150))
-        ]
-        
-        self.background = self.create_background()
-
-    def create_background(self):
-        bg = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-        bg.fill(BACKGROUND)
-        
-        pygame.draw.circle(bg, (255, 255, 100), (900, 100), 50)
-        for i in range(12):
-            angle = math.radians(i * 30)
-            end_x = 900 + math.cos(angle) * 70
-            end_y = 100 + math.sin(angle) * 70
-            pygame.draw.line(bg, (255, 255, 100), (900, 100), (end_x, end_y), 3)
-        
-        for x, y in [(200, 100), (400, 150), (600, 80)]:
-            for i in range(3):
-                pygame.draw.circle(bg, WHITE, (x + i*30, y), 25)
-        
-        for x in range(0, SCREEN_WIDTH, 20):
-            grass_height = random.randint(10, 30)
-            pygame.draw.line(bg, (100, 200, 100), (x, SCREEN_HEIGHT), (x, SCREEN_HEIGHT - grass_height), 2)
-        
-        return bg
-
-    def show_message(self, text):
-        self.message = text
-        self.message_timer = 180
-
-    def add_pet(self, pet_type):
-        x = random.randint(100, SCREEN_WIDTH - 200)
-        y = random.randint(100, 400)
-        name = f"{pet_type.capitalize()}{len(self.pets) + 1}"
-        
-        if pet_type == "cat":
-            new_pet = CartoonPet(name, "cat", x, y)
-        elif pet_type == "dog":
-            new_pet = CartoonPet(name, "dog", x, y)
-        else:
-            new_pet = CartoonPet(name, "fish", x, y)
-            
-        self.pets.append(new_pet)
-        self.selected_pet = new_pet
-        self.show_message(f"Вы завели {name}! 🎉")
-        self.bubbles.add_bubble(x, y - 80, "Привет! 🐾", (255, 220, 150))
-
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return False
+                <div class="slider-container">
+                    <label>
+                        <span>Размер:</span>
+                        <span id="size-value">1.0x</span>
+                    </label>
+                    <input type="range" id="planet-size" min="0.5" max="3" step="0.1" value="1">
+                </div>
                 
-            mouse_pos = pygame.mouse.get_pos()
-            
-            for button in self.buttons:
-                button.check_hover(mouse_pos)
+                <div class="planet-selector">
+                    <div class="planet-btn active" data-planet="sun" title="Солнце">☀️</div>
+                    <div class="planet-btn" data-planet="mercury" title="Меркурий">☿</div>
+                    <div class="planet-btn" data-planet="venus" title="Венера">♀</div>
+                    <div class="planet-btn" data-planet="earth" title="Земля">🌎</div>
+                    <div class="planet-btn" data-planet="mars" title="Марс">♂</div>
+                    <div class="planet-btn" data-planet="jupiter" title="Юпитер">♃</div>
+                    <div class="planet-btn" data-planet="saturn" title="Сатурн">♄</div>
+                    <div class="planet-btn" data-planet="uranus" title="Уран">♅</div>
+                    <div class="planet-btn" data-planet="neptune" title="Нептун">♆</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mobile-controls">
+        <button class="mobile-btn" id="zoom-in">+</button>
+        <button class="mobile-btn" id="zoom-out">-</button>
+        <button class="mobile-btn" id="reset-camera">⌂</button>
+    </div>
+
+    <div class="footer">
+        Создано с Three.js • <span id="fps-counter">60 FPS</span>
+    </div>
+    
+    <div class="loading" id="loading">Загрузка солнечной системы...</div>
+
+    <script>
+        // Конфигурация для GitHub Pages
+        const CONFIG = {
+            useCDN: true,
+            enableStats: true,
+            defaultSpeed: 1.0,
+            mobileOptimized: true
+        };
+
+        // Основные переменные
+        let scene, camera, renderer, controls;
+        let planets = {};
+        let rotationSpeed = CONFIG.defaultSpeed;
+        let planetSize = 1;
+        let currentFocus = 'sun';
+        let raycaster, mouse;
+        let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        let stats;
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fps = 60;
+
+        // Информация о планетах
+        const planetInfo = {
+            sun: { name: "Солнце", description: "Звезда солнечной системы", diameter: "1,391,000 км", wiki: "https://ru.wikipedia.org/wiki/Солнце", search: "Sun" },
+            mercury: { name: "Меркурий", description: "Ближайшая к Солнцу планета", diameter: "4,879 км", wiki: "https://ru.wikipedia.org/wiki/Меркурий", search: "Mercury" },
+            venus: { name: "Венера", description: "Вторая планета от Солнца", diameter: "12,104 км", wiki: "https://ru.wikipedia.org/wiki/Венера", search: "Venus" },
+            earth: { name: "Земля", description: "Наш дом в космосе", diameter: "12,742 км", wiki: "https://ru.wikipedia.org/wiki/Земля", search: "Earth" },
+            mars: { name: "Марс", description: "Красная планета", diameter: "6,779 км", wiki: "https://ru.wikipedia.org/wiki/Марс", search: "Mars" },
+            jupiter: { name: "Юпитер", description: "Крупнейшая планета", diameter: "139,820 км", wiki: "https://ru.wikipedia.org/wiki/Юпитер", search: "Jupiter" },
+            saturn: { name: "Сатурн", description: "Планета с кольцами", diameter: "116,460 км", wiki: "https://ru.wikipedia.org/wiki/Сатурн", search: "Saturn" },
+            uranus: { name: "Уран", description: "Ледяной гигант", diameter: "50,724 км", wiki: "https://ru.wikipedia.org/wiki/Уран", search: "Uranus" },
+            neptune: { name: "Нептун", description: "Самая дальняя планета", diameter: "49,244 км", wiki: "https://ru.wikipedia.org/wiki/Нептун", search: "Neptune" }
+        };
+
+        // Параметры планет
+        const planetParams = {
+            sun: { radius: 5, distance: 0, rotationSpeed: 0.001, color: 0xffcc00 },
+            mercury: { radius: 0.8, distance: 10, rotationSpeed: 0.004, color: 0xa9a9a9 },
+            venus: { radius: 1.2, distance: 15, rotationSpeed: 0.002, color: 0xffb366 },
+            earth: { radius: 1.3, distance: 20, rotationSpeed: 0.005, color: 0x3399ff },
+            mars: { radius: 1.1, distance: 25, rotationSpeed: 0.004, color: 0xff6633 },
+            jupiter: { radius: 2.8, distance: 35, rotationSpeed: 0.009, color: 0xffcc99 },
+            saturn: { radius: 2.4, distance: 45, rotationSpeed: 0.008, color: 0xffdbac },
+            uranus: { radius: 1.8, distance: 55, rotationSpeed: 0.007, color: 0x99ccff },
+            neptune: { radius: 1.8, distance: 65, rotationSpeed: 0.006, color: 0x3366ff }
+        };
+
+        // Загрузка скриптов
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Инициализация
+        async function init() {
+            try {
+                // Загрузка Three.js из CDN
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+                await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js');
                 
-                if button.is_clicked(mouse_pos, event):
-                    if button.text == "🐱 Кошка":
-                        self.add_pet("cat")
-                    elif button.text == "🐶 Собака":
-                        self.add_pet("dog")
-                    elif button.text == "🐠 Рыбка":
-                        self.add_pet("fish")
-                    elif button.text == "🍗 Кормить" and self.selected_pet:
-                        result = self.selected_pet.feed()
-                        self.show_message(result)
-                        self.bubbles.add_bubble(self.selected_pet.x, self.selected_pet.y - 100, "Ням-ням! 🍖", (255, 200, 150))
-                    elif button.text == "🎮 Играть" and self.selected_pet:
-                        result = self.selected_pet.play()
-                        self.show_message(result)
-                        self.bubbles.add_bubble(self.selected_pet.x, self.selected_pet.y - 100, "Ура! 🎲", (200, 255, 150))
-                    elif button.text == "✨ Чистить" and self.selected_pet:
-                        result = self.selected_pet.clean_tank()
-                        self.show_message(result)
-                        if "чист" in result.lower():
-                            self.bubbles.add_bubble(self.selected_pet.x, self.selected_pet.y - 100, "Чисто! 💧", (150, 200, 255))
-                    elif button.text == "📊 Статус" and self.selected_pet:
-                        status = f"Голод: {int(self.selected_pet.hunger)}/10\nНастроение: {int(self.selected_pet.mood)}/10"
-                        if self.selected_pet.pet_type == "fish":
-                            status += f"\nЧистота: {int(self.selected_pet.tank_cleanliness)}/10"
-                        self.show_message(status)
-            
-            # Выбор питомца кликом
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                for pet in self.pets:
-                    if (abs(mouse_pos[0] - pet.x) < 60 and 
-                        abs(mouse_pos[1] - (pet.y + pet.bounce_offset)) < 50):
-                        self.selected_pet = pet
-                        self.show_message(f"Выбран: {pet.name}")
-                        self.bubbles.add_bubble(pet.x, pet.y - 80, "Я здесь! 👋", (200, 230, 255))
-                        break
-                        
-        return True
+                if (CONFIG.enableStats) {
+                    await loadScript('https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js');
+                    setupStats();
+                }
 
-    def update(self):
-        for pet in self.pets:
-            pet.pass_time()
-            pet.update()
-            
-        for button in self.buttons:
-            button.update()
-            
-        self.bubbles.update()
-        
-        if self.message_timer > 0:
-            self.message_timer -= 1
+                setupScene();
+                setupEventListeners();
+                createSolarSystem();
+                
+                document.getElementById('loading').style.display = 'none';
+                animate();
 
-    def draw(self, surface):
-        surface.blit(self.background, (0, 0))
-        
-        for pet in self.pets:
-            pet.draw(surface)
-            
-        self.bubbles.draw(surface)
-        
-        for button in self.buttons:
-            button.draw(surface)
-        
-        # Заголовок
-        title = font_title.render("🐾 Мультяшные питомцы 🐾", True, (50, 100, 150))
-        surface.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 20))
-        
-        # Сообщение
-        if self.message_timer > 0:
-            msg_lines = self.message.split('\n')
-            for i, line in enumerate(msg_lines):
-                msg_surf = font_medium.render(line, True, BLACK)
-                surface.blit(msg_surf, (20, 580 + i * 25))
-        
-        # Подсказка
-        hint = font_small.render("Кликните на питомца чтобы выбрать его", True, (100, 100, 100))
-        surface.blit(hint, (20, 550))
+            } catch (error) {
+                console.error('Error loading scripts:', error);
+                document.getElementById('loading').textContent = 'Ошибка загрузки. Пожалуйста, обновите страницу.';
+            }
+        }
 
-    def run(self):
-        clock = pygame.time.Clock()
-        running = True
-        
-        while running:
-            running = self.handle_events()
-            self.update()
+        function setupScene() {
+            // Сцена
+            scene = new THREE.Scene();
             
-            screen.fill(WHITE)
-            self.draw(screen)
+            // Камера
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = isMobile ? 70 : 50;
             
-            pygame.display.flip()
-            clock.tick(60)
+            // Рендерер
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true, 
+                alpha: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            // Управление камерой
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 5;
+            controls.maxDistance = 200;
+            
+            // Raycaster для взаимодействия
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+        }
 
-# Запуск игры
-if __name__ == "__main__":
-    game = CartoonGame()
-    game.run()
-    pygame.quit()
-    sys.exit()
+        function setupEventListeners() {
+            // Обработка изменения размера
+            window.addEventListener('resize', onWindowResize);
+            
+            // Управление
+            document.getElementById('rotation-speed').addEventListener('input', (e) => {
+                rotationSpeed = parseFloat(e.target.value);
+                document.getElementById('speed-value').textContent = rotationSpeed.toFixed(1) + 'x';
+            });
+            
+            document.getElementById('planet-size').addEventListener('input', (e) => {
+                planetSize = parseFloat(e.target.value);
+                document.getElementById('size-value').textContent = planetSize.toFixed(1) + 'x';
+                updatePlanetSizes();
+            });
+            
+            // Выбор планет
+            document.querySelectorAll('.planet-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.planet-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFocus = btn.dataset.planet;
+                    focusOnPlanet(currentFocus);
+                });
+            });
+            
+            // Мобильное управление
+            if (isMobile) {
+                document.getElementById('zoom-in').addEventListener('click', () => {
+                    camera.position.z -= 5;
+                    if (camera.position.z < 10) camera.position.z = 10;
+                });
+                
+                document.getElementById('zoom-out').addEventListener('click', () => {
+                    camera.position.z += 5;
+                    if (camera.position.z > 200) camera.position.z = 200;
+                });
+                
+                document.getElementById('reset-camera').addEventListener('click', () => {
+                    focusOnPlanet('sun');
+                });
+            }
+            
+            // Взаимодействие с планетами
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('click', onPlanetClick);
+        }
+
+        function createSolarSystem() {
+            // Звездный фон
+            createStars();
+            
+            // Создание планет
+            for (const [name, params] of Object.entries(planetParams)) {
+                createPlanet(name, params);
+            }
+            
+            // Освещение
+            const ambientLight = new THREE.AmbientLight(0x333333);
+            scene.add(ambientLight);
+            
+            const sunLight = new THREE.PointLight(0xffcc00, 1.5, 300);
+            scene.add(sunLight);
+        }
+
+        function createStars() {
+            const geometry = new THREE.BufferGeometry();
+            const material = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.2,
+                sizeAttenuation: true
+            });
+            
+            const vertices = [];
+            for (let i = 0; i < 5000; i++) {
+                vertices.push(
+                    (Math.random() - 0.5) * 2000,
+                    (Math.random() - 0.5) * 2000,
+                    (Math.random() - 0.5) * 2000
+                );
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            scene.add(new THREE.Points(geometry, material));
+        }
+
+        function createPlanet(name, params) {
+            const geometry = new THREE.SphereGeometry(params.radius, 32, 32);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: params.color,
+                specular: 0xffffff,
+                shininess: 30
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            
+            if (name !== 'sun') {
+                mesh.position.x = params.distance;
+                
+                // Орбита
+                const orbitGeometry = new THREE.RingGeometry(params.distance - 0.1, params.distance + 0.1, 64);
+                const orbitMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0x4488ff, 
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.2
+                });
+                const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
+                orbit.rotation.x = Math.PI / 2;
+                scene.add(orbit);
+            }
+            
+            scene.add(mesh);
+            
+            planets[name] = { 
+                mesh: mesh, 
+                angle: Math.random() * Math.PI * 2,
+                speed: params.rotationSpeed,
+                distance: params.distance,
+                baseRadius: params.radius
+            };
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function onPlanetClick() {
+            raycaster.setFromCamera(mouse, camera);
+            const planetMeshes = Object.values(planets).map(p => p.mesh);
+            const intersects = raycaster.intersectObjects(planetMeshes);
+            
+            if (intersects.length > 0) {
+                const planetName = findPlanetName(intersects[0].object);
+                if (planetName) {
+                    window.open(planetInfo[planetName].wiki, '_blank');
+                }
+            }
+        }
+
+        function findPlanetName(mesh) {
+            for (const [name, planet] of Object.entries(planets)) {
+                if (planet.mesh === mesh) return name;
+            }
+            return null;
+        }
+
+        function updatePlanetSizes() {
+            for (const [name, planet] of Object.entries(planets)) {
+                planet.mesh.scale.set(planetSize, planetSize, planetSize);
+            }
+        }
+
+        function focusOnPlanet(planetName) {
+            const planet = planets[planetName];
+            if (planet) {
+                controls.target.copy(planet.mesh.position);
+                camera.position.set(
+                    planet.mesh.position.x,
+                    planet.mesh.position.y,
+                    planet.mesh.position.z + planet.baseRadius * 3
+                );
+            }
+        }
+
+        function setupStats() {
+            stats = new Stats();
+            stats.showPanel(0);
+            document.body.appendChild(stats.dom);
+            stats.dom.style.left = 'auto';
+            stats.dom.style.right = '0px';
+        }
+
+        function updateFPS() {
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                document.getElementById('fps-counter').textContent = `${fps} FPS`;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (CONFIG.enableStats) stats.begin();
+            
+            // Вращение планет
+            for (const [name, planet] of Object.entries(planets)) {
+                if (name !== 'sun') {
+                    planet.angle += planet.speed * rotationSpeed * 0.1;
+                    planet.mesh.position.x = Math.cos(planet.angle) * planet.distance;
+                    planet.mesh.position.z = Math.sin(planet.angle) * planet.distance;
+                    planet.mesh.rotation.y += planet.speed * rotationSpeed;
+                } else {
+                    planet.mesh.rotation.y += planet.speed * rotationSpeed;
+                }
+            }
+            
+            controls.update();
+            renderer.render(scene, camera);
+            
+            updateFPS();
+            if (CONFIG.enableStats) stats.end();
+        }
+
+        // Запуск приложения
+        window.addEventListener('load', init);
+
+        // Service Worker для оффлайн работы (опционально)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(console.error);
+        }
+    </script>
+</body>
+</html>
