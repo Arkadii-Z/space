@@ -298,10 +298,41 @@
             color: #ffcc00;
             transform: scale(1.2);
         }
+        
+        .music-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+        
+        .music-btn {
+            background: rgba(0, 30, 60, 0.7);
+            border: 2px solid rgba(100, 200, 255, 0.5);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .music-btn:hover {
+            background: rgba(0, 50, 100, 0.9);
+        }
+        
+        .music-btn.muted {
+            opacity: 0.6;
+        }
     </style>
 </head>
 <body>
     <div id="container"></div>
+    
+    <div class="music-controls">
+        <button class="music-btn" id="music-toggle">🔊 Музыка ВКЛ</button>
+    </div>
     
     <div id="title">СОЛНЕЧНАЯ СИСТЕМА</div>
     <div id="instructions">Наведите на планету для информации, кликните для поиска в Google</div>
@@ -356,6 +387,11 @@
     
     <div class="loading" id="loading">Загрузка солнечной системы...</div>
 
+    <!-- Аудио элемент для музыки -->
+    <audio id="background-music" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/01/20/audio_dc6c2f9692.mp3?filename=space-ambience-97614.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
         // Основные переменные
         let scene, camera, renderer, controls;
@@ -367,6 +403,8 @@
         let raycaster, mouse;
         let infoCard = null;
         let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        let backgroundMusic;
+        let isMusicPlaying = false;
 
         // Информация о планетах
         const planetInfo = {
@@ -482,6 +520,9 @@
                 // Создаем информационную карточку
                 createInfoCard();
                 
+                // Инициализация музыки
+                setupMusic();
+                
                 document.getElementById('loading').style.display = 'none';
                 animate();
 
@@ -505,7 +546,7 @@
                 alpha: true,
                 powerPreference: "high-performance"
             });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(window.innerWidth / window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('container').appendChild(renderer.domElement);
             
@@ -519,6 +560,44 @@
             // Raycaster для взаимодействия
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
+        }
+
+        function setupMusic() {
+            backgroundMusic = document.getElementById('background-music');
+            backgroundMusic.volume = 0.3; // Устанавливаем громкость на 30%
+            
+            // Автозапуск музыки с разрешения пользователя
+            document.addEventListener('click', function initMusic() {
+                if (!isMusicPlaying) {
+                    backgroundMusic.play().then(() => {
+                        isMusicPlaying = true;
+                        updateMusicButton();
+                    }).catch(console.error);
+                }
+                document.removeEventListener('click', initMusic);
+            }, { once: true });
+        }
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                backgroundMusic.pause();
+                isMusicPlaying = false;
+            } else {
+                backgroundMusic.play().catch(console.error);
+                isMusicPlaying = true;
+            }
+            updateMusicButton();
+        }
+
+        function updateMusicButton() {
+            const btn = document.getElementById('music-toggle');
+            if (isMusicPlaying) {
+                btn.textContent = '🔊 Музыка ВКЛ';
+                btn.classList.remove('muted');
+            } else {
+                btn.textContent = '🔇 Музыка ВЫКЛ';
+                btn.classList.add('muted');
+            }
         }
 
         function setupEventListeners() {
@@ -556,6 +635,9 @@
                 this.textContent = panel.classList.contains('collapsed') ? '+' : '−';
             });
             
+            // Управление музыкой
+            document.getElementById('music-toggle').addEventListener('click', toggleMusic);
+            
             // Мобильное управление
             if (isMobile) {
                 document.getElementById('zoom-in').addEventListener('click', () => {
@@ -571,11 +653,52 @@
                 document.getElementById('reset-camera').addEventListener('click', () => {
                     focusOnPlanet('sun');
                 });
+                
+                // Обработка касаний для мобильных устройств
+                setupTouchControls();
             }
             
             // Взаимодействие с планетами
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('click', onPlanetClick);
+        }
+
+        function setupTouchControls() {
+            let touchStartX, touchStartY;
+            let isTouchMoving = false;
+            
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isTouchMoving = false;
+                
+                // Обновляем позицию мыши для Raycaster
+                mouse.x = (touchStartX / window.innerWidth) * 2 - 1;
+                mouse.y = -(touchStartY / window.innerHeight) * 2 + 1;
+                
+                // Проверяем, не нажали ли на планету
+                checkPlanetHover();
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                isTouchMoving = true;
+                const touchX = e.touches[0].clientX;
+                const touchY = e.touches[0].clientY;
+                
+                // Обновляем позицию мыши
+                mouse.x = (touchX / window.innerWidth) * 2 - 1;
+                mouse.y = -(touchY / window.innerHeight) * 2 + 1;
+                
+                // Обновляем подписи
+                updateLabelPositions();
+            });
+            
+            document.addEventListener('touchend', (e) => {
+                if (!isTouchMoving) {
+                    // Это было короткое касание (тап), а не перемещение
+                    onPlanetClick();
+                }
+            });
         }
 
         function createSolarSystem() {
@@ -836,6 +959,9 @@
                     planet.mesh.rotation.y += planet.speed * rotationSpeed;
                 }
             }
+            
+            // Обновляем позиции подписей
+            updateLabelPositions();
             
             controls.update();
             renderer.render(scene, camera);
