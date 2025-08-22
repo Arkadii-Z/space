@@ -1,691 +1,1049 @@
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Солнечная система | Интерактивная модель</title>
-    <meta name="description" content="Интерактивная 3D модель Солнечной системы с реалистичными планетами. Исследуйте космос, управляйте скоростью вращения и изучайте планеты!">
-    <meta name="keywords" content="солнечная система, 3d модель, планеты, космос, интерактивная, three.js">
-    <meta name="author" content="Ваше Имя">
-    <meta property="og:title" content="3D Солнечная система | Интерактивная модель">
-    <meta property="og:description" content="Исследуйте нашу Солнечную систему в интерактивной 3D модели. Управляйте планетами и изучайте космос!">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://raw.githubusercontent.com/username/repository/main/preview.jpg">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌎</text></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Хром Плеер</title>
     <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --background-color: #f9f9f9;
+            --panel-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
+            background-color: var(--background-color);
+            color: var(--text-color);
             overflow: hidden;
-            background: #000;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            color: white;
-            touch-action: none;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
-        
-        #container {
+
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 50px;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .module {
+            background-color: var(--panel-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin: 10px;
+            display: flex;
+            flex-direction: column;
+            min-width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .module-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+
+        .module-content {
+            padding: 15px;
+            flex: 1;
+            overflow: auto;
+        }
+
+        .module-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .module-controls button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .player-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .player-controls button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            width: 0%;
+        }
+
+        .eq-container {
+            display: flex;
+            height: 150px;
+            align-items: flex-end;
+            gap: 8px;
+            padding: 10px 0;
+        }
+
+        .eq-band {
+            flex: 1;
+            background-color: var(--primary-color);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .eq-band-value {
             position: absolute;
+            bottom: -20px;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .visualization-container {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visualization-mode {
+            display: none;
+        }
+
+        #visualization-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 100%;
+            padding: 0 10px;
+        }
+
+        .visualization-bar {
+            width: 10px;
+            background-color: var(--primary-color);
+            margin: 0 2px;
+            transition: height 0.1s ease;
+        }
+
+        #visualization-wave {
             width: 100%;
             height: 100%;
-            touch-action: none;
         }
-        
-        #ui {
-            position: absolute;
-            bottom: 10px;
-            left: 0;
+
+        #visualization-circles, #visualization-particles {
             width: 100%;
-            display: flex;
-            justify-content: center;
-            z-index: 100;
-            padding: 0 10px;
+            height: 100%;
         }
-        
-        .control-panel {
-            background: rgba(0, 30, 60, 0.85);
-            padding: 12px;
-            border-radius: 12px;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 0 15px rgba(0, 100, 255, 0.5);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-            max-width: 500px;
-            transition: all 0.3s ease;
-        }
-        
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+
+        .playlist-item {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
             cursor: pointer;
-            user-select: none;
         }
-        
-        .panel-header h3 {
-            color: #4db8ff;
-            margin: 0;
-            font-size: 16px;
+
+        .playlist-item:hover {
+            background-color: #f0f0f0;
         }
-        
-        .slider-container {
+
+        .playlist-item.playing {
+            background-color: #e3f2fd;
+            color: var(--primary-color);
+        }
+
+        .source-selector {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
-        
-        .slider-container label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-        }
-        
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            -webkit-appearance: none;
-            background: rgba(100, 150, 255, 0.3);
-            border-radius: 3px;
-            outline: none;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #4db8ff;
+
+        .source-selector button {
+            padding: 8px 15px;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            border-radius: 4px;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 200, 255, 0.8);
         }
-        
-        .planet-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 8px;
-        }
-        
-        .planet-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            background: rgba(50, 50, 100, 0.5);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+
+        .source-selector button.active {
+            background-color: var(--primary-color);
             color: white;
-            font-size: 12px;
         }
-        
-        .planet-btn.active {
-            transform: scale(1.3);
-            box-shadow: 0 0 20px rgba(0, 200, 255, 1);
-            border-color: white;
+
+        .hidden {
+            display: none;
         }
-        
-        #title {
-            position: absolute;
-            top: 10px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 18px;
-            text-shadow: 0 0 10px rgba(0, 200, 255, 0.8);
-            pointer-events: none;
-            padding: 0 10px;
+
+        .collapsed .module-content {
+            display: none;
         }
-        
-        #instructions {
-            position: absolute;
-            top: 40px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 12px;
-            color: #a0d0ff;
-            text-shadow: 0 0 5px rgba(0, 100, 255, 0.5);
-            pointer-events: none;
-            padding: 0 10px;
+
+        .minimized {
+            width: auto !important;
+            min-width: auto !important;
         }
-        
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 18px;
-            color: #4db8ff;
-            text-align: center;
-            padding: 0 20px;
+
+        .minimized .module-content {
+            display: none;
         }
-        
-        .github-corner {
-            position: absolute;
-            top: 0;
-            right: 0;
+
+        .dragging {
+            opacity: 0.8;
             z-index: 1000;
         }
-        
-        .github-corner svg {
-            fill: #4db8ff;
-            color: #000;
-            position: absolute;
-            top: 0;
-            border: 0;
-            right: 0;
-        }
-        
-        .github-corner:hover .octo-arm {
-            animation: octocat-wave 560ms ease-in-out;
-        }
-        
-        @keyframes octocat-wave {
-            0%, 100% { transform: rotate(0); }
-            20%, 60% { transform: rotate(-25deg); }
-            40%, 80% { transform: rotate(10deg); }
-        }
-        
-        @media (max-width: 500px) {
-            .github-corner:hover .octo-arm {
-                animation: none;
-            }
-            .github-corner .octo-arm {
-                animation: octocat-wave 560ms ease-in-out;
-            }
-        }
 
-        .info-card {
-            position: absolute;
-            background: rgba(0, 30, 60, 0.95);
-            border-radius: 10px;
-            padding: 12px;
-            max-width: 280px;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 0 15px rgba(0, 100, 255, 0.5);
-            border: 1px solid rgba(100, 200, 255, 0.3);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 200;
-            pointer-events: auto;
-            font-size: 14px;
-        }
-        
-        .info-card.visible {
-            opacity: 1;
-        }
-        
-        .info-card h3 {
-            margin-bottom: 8px;
-            color: #4db8ff;
-            border-bottom: 1px solid rgba(100, 200, 255, 0.3);
-            padding-bottom: 4px;
-            font-size: 16px;
-        }
-        
-        .info-card p {
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        
-        .info-card a {
-            color: #4db8ff;
-            text-decoration: none;
-            font-weight: bold;
-            display: inline-block;
-            margin-top: 5px;
-            pointer-events: auto;
-            font-size: 14px;
-        }
-
-        .mobile-controls {
-            position: absolute;
-            right: 10px;
-            bottom: 100px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 90;
-        }
-        
-        .mobile-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(0, 30, 60, 0.7);
-            border: 2px solid rgba(100, 200, 255, 0.5);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        .footer {
-            position: absolute;
-            bottom: 5px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 11px;
-            color: #88c0ff;
-            opacity: 0.7;
-            pointer-events: none;
+        .snapped {
+            transition: all 0.3s ease;
         }
     </style>
 </head>
 <body>
-    <div id="container"></div>
-    
-    <a href="https://github.com/your-username/solar-system" class="github-corner" aria-label="View source on GitHub">
-        <svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true">
-            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
-            <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
-            <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
-        </svg>
-    </a>
-    
-    <div id="title">СОЛНЕЧНАЯ СИСТЕМА</div>
-    <div id="instructions">Наведите на планету для информации, кликните для поиска</div>
-    
-    <div id="ui">
-        <div class="control-panel">
-            <div class="panel-header">
-                <h3>Управление системой</h3>
+    <div class="header">
+        <h1>Хром Плеер</h1>
+        <div class="current-track">Не воспроизводится</div>
+    </div>
+
+    <div class="main-container" id="main-container">
+        <!-- Модуль плеера -->
+        <div class="module" id="player-module">
+            <div class="module-header">
+                <span>Плеер</span>
+                <div class="module-controls">
+                    <button class="minimize-btn">—</button>
+                    <button class="close-btn">✕</button>
+                </div>
             </div>
-            <div class="panel-content">
-                <div class="slider-container">
-                    <label>
-                        <span>Скорость:</span>
-                        <span id="speed-value">1.0x</span>
-                    </label>
-                    <input type="range" id="rotation-speed" min="0" max="2" step="0.1" value="1">
+            <div class="module-content">
+                <div class="source-selector">
+                    <button data-source="local" class="active">Локальные файлы</button>
+                    <button data-source="radio">Радио</button>
+                    <button data-source="url">URL поток</button>
                 </div>
-                
-                <div class="slider-container">
-                    <label>
-                        <span>Размер:</span>
-                        <span id="size-value">1.0x</span>
-                    </label>
-                    <input type="range" id="planet-size" min="0.5" max="3" step="0.1" value="1">
+
+                <div id="local-source" class="source-content">
+                    <input type="file" id="audio-file" accept="audio/*" multiple>
+                    <div id="local-file-info"></div>
                 </div>
-                
-                <div class="planet-selector">
-                    <div class="planet-btn active" data-planet="sun" title="Солнце">☀️</div>
-                    <div class="planet-btn" data-planet="mercury" title="Меркурий">☿</div>
-                    <div class="planet-btn" data-planet="venus" title="Венера">♀</div>
-                    <div class="planet-btn" data-planet="earth" title="Земля">🌎</div>
-                    <div class="planet-btn" data-planet="mars" title="Марс">♂</div>
-                    <div class="planet-btn" data-planet="jupiter" title="Юпитер">♃</div>
-                    <div class="planet-btn" data-planet="saturn" title="Сатурн">♄</div>
-                    <div class="planet-btn" data-planet="uranus" title="Уран">♅</div>
-                    <div class="planet-btn" data-planet="neptune" title="Нептун">♆</div>
+
+                <div id="radio-source" class="source-content hidden">
+                    <select id="radio-stations">
+                        <option value="https://stream.radioparadise.com/rock-128">Radio Paradise (Rock)</option>
+                        <option value="https://icecast.radiofrance.fr/fip-hifi.aac">FIP Radio</option>
+                        <option value="https://strm112.1.fm/electronica_mobile_mp3">Electronica Radio</option>
+                    </select>
+                </div>
+
+                <div id="url-source" class="source-content hidden">
+                    <input type="text" id="stream-url" placeholder="Введите URL аудиопотока">
+                    <button id="load-stream">Загрузить</button>
+                </div>
+
+                <div class="player-controls">
+                    <button id="prev-btn">⏮</button>
+                    <button id="play-btn">▶</button>
+                    <button id="pause-btn">⏸</button>
+                    <button id="next-btn">⏭</button>
+                </div>
+
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+
+                <div id="track-info">Выберите аудио для воспроизведения</div>
+            </div>
+        </div>
+
+        <!-- Модуль плейлиста -->
+        <div class="module" id="playlist-module">
+            <div class="module-header">
+                <span>Плейлист</span>
+                <div class="module-controls">
+                    <button class="minimize-btn">—</button>
+                    <button class="close-btn">✕</button>
+                </div>
+            </div>
+            <div class="module-content">
+                <div id="playlist-items">
+                    <!-- Плейлист будет заполняться динамически -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Модуль эквалайзера -->
+        <div class="module" id="equalizer-module">
+            <div class="module-header">
+                <span>Эквалайзер</span>
+                <div class="module-controls">
+                    <button class="minimize-btn">—</button>
+                    <button class="close-btn">✕</button>
+                </div>
+            </div>
+            <div class="module-content">
+                <div class="eq-container" id="eq-container">
+                    <!-- Полосы эквалайзера будут созданы динамически -->
+                </div>
+                <select id="eq-presets">
+                    <option value="flat">Плоский</option>
+                    <option value="pop">Поп</option>
+                    <option value="rock">Рок</option>
+                    <option value="jazz">Джаз</option>
+                    <option value="classical">Классика</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Модуль визуализации -->
+        <div class="module" id="visualization-module">
+            <div class="module-header">
+                <span>Визуализация</span>
+                <div class="module-controls">
+                    <button class="minimize-btn">—</button>
+                    <button class="close-btn">✕</button>
+                </div>
+            </div>
+            <div class="module-content">
+                <select id="visualization-mode">
+                    <option value="bars">Столбцы</option>
+                    <option value="wave">Волна</option>
+                    <option value="circles">Круги</option>
+                    <option value="particles">Частицы</option>
+                </select>
+                <div class="visualization-container">
+                    <div id="visualization-bars" class="visualization-mode">
+                        <!-- Столбцы визуализации будут созданы динамически -->
+                    </div>
+                    <canvas id="visualization-wave" class="visualization-mode hidden"></canvas>
+                    <canvas id="visualization-circles" class="visualization-mode hidden"></canvas>
+                    <canvas id="visualization-particles" class="visualization-mode hidden"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="mobile-controls">
-        <button class="mobile-btn" id="zoom-in">+</button>
-        <button class="mobile-btn" id="zoom-out">-</button>
-        <button class="mobile-btn" id="reset-camera">⌂</button>
-    </div>
-
-    <div class="footer">
-        Создано с Three.js • <span id="fps-counter">60 FPS</span>
-    </div>
-    
-    <div class="loading" id="loading">Загрузка солнечной системы...</div>
+    <audio id="audio-element" crossorigin="anonymous"></audio>
 
     <script>
-        // Конфигурация для GitHub Pages
-        const CONFIG = {
-            useCDN: true,
-            enableStats: true,
-            defaultSpeed: 1.0,
-            mobileOptimized: true
-        };
-
-        // Основные переменные
-        let scene, camera, renderer, controls;
-        let planets = {};
-        let rotationSpeed = CONFIG.defaultSpeed;
-        let planetSize = 1;
-        let currentFocus = 'sun';
-        let raycaster, mouse;
-        let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        let stats;
-        let frameCount = 0;
-        let lastTime = performance.now();
-        let fps = 60;
-
-        // Информация о планетах
-        const planetInfo = {
-            sun: { name: "Солнце", description: "Звезда солнечной системы", diameter: "1,391,000 км", wiki: "https://ru.wikipedia.org/wiki/Солнце", search: "Sun" },
-            mercury: { name: "Меркурий", description: "Ближайшая к Солнцу планета", diameter: "4,879 км", wiki: "https://ru.wikipedia.org/wiki/Меркурий", search: "Mercury" },
-            venus: { name: "Венера", description: "Вторая планета от Солнца", diameter: "12,104 км", wiki: "https://ru.wikipedia.org/wiki/Венера", search: "Venus" },
-            earth: { name: "Земля", description: "Наш дом в космосе", diameter: "12,742 км", wiki: "https://ru.wikipedia.org/wiki/Земля", search: "Earth" },
-            mars: { name: "Марс", description: "Красная планета", diameter: "6,779 км", wiki: "https://ru.wikipedia.org/wiki/Марс", search: "Mars" },
-            jupiter: { name: "Юпитер", description: "Крупнейшая планета", diameter: "139,820 км", wiki: "https://ru.wikipedia.org/wiki/Юпитер", search: "Jupiter" },
-            saturn: { name: "Сатурн", description: "Планета с кольцами", diameter: "116,460 км", wiki: "https://ru.wikipedia.org/wiki/Сатурн", search: "Saturn" },
-            uranus: { name: "Уран", description: "Ледяной гигант", diameter: "50,724 км", wiki: "https://ru.wikipedia.org/wiki/Уран", search: "Uranus" },
-            neptune: { name: "Нептун", description: "Самая дальняя планета", diameter: "49,244 км", wiki: "https://ru.wikipedia.org/wiki/Нептун", search: "Neptune" }
-        };
-
-        // Параметры планет
-        const planetParams = {
-            sun: { radius: 5, distance: 0, rotationSpeed: 0.001, color: 0xffcc00 },
-            mercury: { radius: 0.8, distance: 10, rotationSpeed: 0.004, color: 0xa9a9a9 },
-            venus: { radius: 1.2, distance: 15, rotationSpeed: 0.002, color: 0xffb366 },
-            earth: { radius: 1.3, distance: 20, rotationSpeed: 0.005, color: 0x3399ff },
-            mars: { radius: 1.1, distance: 25, rotationSpeed: 0.004, color: 0xff6633 },
-            jupiter: { radius: 2.8, distance: 35, rotationSpeed: 0.009, color: 0xffcc99 },
-            saturn: { radius: 2.4, distance: 45, rotationSpeed: 0.008, color: 0xffdbac },
-            uranus: { radius: 1.8, distance: 55, rotationSpeed: 0.007, color: 0x99ccff },
-            neptune: { radius: 1.8, distance: 65, rotationSpeed: 0.006, color: 0x3366ff }
-        };
-
-        // Загрузка скриптов
-        function loadScript(src) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-
-        // Инициализация
-        async function init() {
-            try {
-                // Загрузка Three.js из CDN
-                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
-                await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js');
-                
-                if (CONFIG.enableStats) {
-                    await loadScript('https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js');
-                    setupStats();
-                }
-
-                setupScene();
+        document.addEventListener('DOMContentLoaded', function() {
+            // Основные элементы
+            const audioElement = document.getElementById('audio-element');
+            const playBtn = document.getElementById('play-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const trackInfo = document.getElementById('track-info');
+            const currentTrackElement = document.querySelector('.current-track');
+            
+            // Модули
+            const modules = document.querySelectorAll('.module');
+            const mainContainer = document.getElementById('main-container');
+            
+            // Плейлист
+            const playlistItems = document.getElementById('playlist-items');
+            let currentPlaylist = [];
+            let currentTrackIndex = -1;
+            
+            // Эквалайзер
+            const eqContainer = document.getElementById('eq-container');
+            const eqPresets = document.getElementById('eq-presets');
+            let audioContext;
+            let equalizer;
+            let filters = [];
+            
+            // Визуализация
+            const visualizationMode = document.getElementById('visualization-mode');
+            const visualizationBars = document.getElementById('visualization-bars');
+            const visualizationWave = document.getElementById('visualization-wave');
+            const visualizationCircles = document.getElementById('visualization-circles');
+            const visualizationParticles = document.getElementById('visualization-particles');
+            let analyser;
+            let visualizationRaf;
+            let visualizationDataArray;
+            
+            // Источники аудио
+            const sourceButtons = document.querySelectorAll('.source-selector button');
+            const sourceContents = document.querySelectorAll('.source-content');
+            const audioFileInput = document.getElementById('audio-file');
+            const radioStations = document.getElementById('radio-stations');
+            const streamUrlInput = document.getElementById('stream-url');
+            const loadStreamBtn = document.getElementById('load-stream');
+            
+            // Инициализация приложения
+            initApp();
+            
+            function initApp() {
+                initAudio();
+                initEqualizer();
+                initVisualization();
+                initModules();
+                initSources();
                 setupEventListeners();
-                createSolarSystem();
-                
-                document.getElementById('loading').style.display = 'none';
-                animate();
-
-            } catch (error) {
-                console.error('Error loading scripts:', error);
-                document.getElementById('loading').textContent = 'Ошибка загрузки. Пожалуйста, обновите страницу.';
             }
-        }
-
-        function setupScene() {
-            // Сцена
-            scene = new THREE.Scene();
             
-            // Камера
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = isMobile ? 70 : 50;
-            
-            // Рендерер
-            renderer = new THREE.WebGLRenderer({ 
-                antialias: true, 
-                alpha: true,
-                powerPreference: "high-performance"
-            });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            document.getElementById('container').appendChild(renderer.domElement);
-            
-            // Управление камерой
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.minDistance = 5;
-            controls.maxDistance = 200;
-            
-            // Raycaster для взаимодействия
-            raycaster = new THREE.Raycaster();
-            mouse = new THREE.Vector2();
-        }
-
-        function setupEventListeners() {
-            // Обработка изменения размера
-            window.addEventListener('resize', onWindowResize);
-            
-            // Управление
-            document.getElementById('rotation-speed').addEventListener('input', (e) => {
-                rotationSpeed = parseFloat(e.target.value);
-                document.getElementById('speed-value').textContent = rotationSpeed.toFixed(1) + 'x';
-            });
-            
-            document.getElementById('planet-size').addEventListener('input', (e) => {
-                planetSize = parseFloat(e.target.value);
-                document.getElementById('size-value').textContent = planetSize.toFixed(1) + 'x';
-                updatePlanetSizes();
-            });
-            
-            // Выбор планет
-            document.querySelectorAll('.planet-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    document.querySelectorAll('.planet-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    currentFocus = btn.dataset.planet;
-                    focusOnPlanet(currentFocus);
-                });
-            });
-            
-            // Мобильное управление
-            if (isMobile) {
-                document.getElementById('zoom-in').addEventListener('click', () => {
-                    camera.position.z -= 5;
-                    if (camera.position.z < 10) camera.position.z = 10;
+            function initAudio() {
+                // Создаем контекст для Web Audio API
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Создаем анализатор для визуализации
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 256;
+                    visualizationDataArray = new Uint8Array(analyser.frequencyBinCount);
+                    
+                    // Подключаем анализатор к выходу
+                    analyser.connect(audioContext.destination);
+                    
+                } catch (e) {
+                    console.error('Web Audio API не поддерживается в этом браузере', e);
+                    alert('Web Audio API не поддерживается в вашем браузере. Некоторые функции могут быть недоступны.');
+                }
+                
+                // Обработчики событий для аудио элемента
+                audioElement.addEventListener('loadedmetadata', function() {
+                    updateTrackInfo();
                 });
                 
-                document.getElementById('zoom-out').addEventListener('click', () => {
-                    camera.position.z += 5;
-                    if (camera.position.z > 200) camera.position.z = 200;
+                audioElement.addEventListener('timeupdate', function() {
+                    updateProgress();
                 });
                 
-                document.getElementById('reset-camera').addEventListener('click', () => {
-                    focusOnPlanet('sun');
+                audioElement.addEventListener('ended', function() {
+                    playNext();
                 });
             }
             
-            // Взаимодействие с планетами
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('click', onPlanetClick);
-        }
-
-        function createSolarSystem() {
-            // Звездный фон
-            createStars();
-            
-            // Создание планет
-            for (const [name, params] of Object.entries(planetParams)) {
-                createPlanet(name, params);
-            }
-            
-            // Освещение
-            const ambientLight = new THREE.AmbientLight(0x333333);
-            scene.add(ambientLight);
-            
-            const sunLight = new THREE.PointLight(0xffcc00, 1.5, 300);
-            scene.add(sunLight);
-        }
-
-        function createStars() {
-            const geometry = new THREE.BufferGeometry();
-            const material = new THREE.PointsMaterial({
-                color: 0xffffff,
-                size: 0.2,
-                sizeAttenuation: true
-            });
-            
-            const vertices = [];
-            for (let i = 0; i < 5000; i++) {
-                vertices.push(
-                    (Math.random() - 0.5) * 2000,
-                    (Math.random() - 0.5) * 2000,
-                    (Math.random() - 0.5) * 2000
-                );
-            }
-            
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            scene.add(new THREE.Points(geometry, material));
-        }
-
-        function createPlanet(name, params) {
-            const geometry = new THREE.SphereGeometry(params.radius, 32, 32);
-            const material = new THREE.MeshPhongMaterial({ 
-                color: params.color,
-                specular: 0xffffff,
-                shininess: 30
-            });
-            
-            const mesh = new THREE.Mesh(geometry, material);
-            
-            if (name !== 'sun') {
-                mesh.position.x = params.distance;
+            function initEqualizer() {
+                // Создаем 7 полос эквалайзера
+                const frequencies = [60, 150, 400, 1000, 2400, 6000, 15000];
                 
-                // Орбита
-                const orbitGeometry = new THREE.RingGeometry(params.distance - 0.1, params.distance + 0.1, 64);
-                const orbitMaterial = new THREE.MeshBasicMaterial({ 
-                    color: 0x4488ff, 
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.2
+                // Создаем элементы интерфейса для эквалайзера
+                for (let i = 0; i < frequencies.length; i++) {
+                    const band = document.createElement('div');
+                    band.className = 'eq-band';
+                    band.dataset.freq = frequencies[i];
+                    band.dataset.value = 0;
+                    
+                    const valueDisplay = document.createElement('div');
+                    valueDisplay.className = 'eq-band-value';
+                    valueDisplay.textContent = '0 dB';
+                    
+                    band.appendChild(valueDisplay);
+                    eqContainer.appendChild(band);
+                    
+                    // Создаем фильтры для эквалайзера
+                    if (audioContext) {
+                        const filter = audioContext.createBiquadFilter();
+                        filter.type = 'peaking';
+                        filter.frequency.value = frequencies[i];
+                        filter.Q.value = 1;
+                        filter.gain.value = 0;
+                        
+                        filters.push(filter);
+                    }
+                    
+                    // Добавляем обработчик событий для изменения полосы
+                    band.addEventListener('click', function(e) {
+                        const rect = this.getBoundingClientRect();
+                        const height = rect.height;
+                        const y = e.clientY - rect.top;
+                        const value = ((height - y) / height) * 30 - 15; // От -15 до +15 dB
+                        
+                        this.dataset.value = value;
+                        this.querySelector('.eq-band-value').textContent = value.toFixed(1) + ' dB';
+                        
+                        // Обновляем соответствующий фильтр
+                        if (filters[i]) {
+                            filters[i].gain.value = value;
+                        }
+                    });
+                }
+                
+                // Обработчик для пресетов
+                eqPresets.addEventListener('change', function() {
+                    applyEqPreset(this.value);
                 });
-                const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
-                orbit.rotation.x = Math.PI / 2;
-                scene.add(orbit);
             }
             
-            scene.add(mesh);
-            
-            planets[name] = { 
-                mesh: mesh, 
-                angle: Math.random() * Math.PI * 2,
-                speed: params.rotationSpeed,
-                distance: params.distance,
-                baseRadius: params.radius
-            };
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function onMouseMove(event) {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-        }
-
-        function onPlanetClick() {
-            raycaster.setFromCamera(mouse, camera);
-            const planetMeshes = Object.values(planets).map(p => p.mesh);
-            const intersects = raycaster.intersectObjects(planetMeshes);
-            
-            if (intersects.length > 0) {
-                const planetName = findPlanetName(intersects[0].object);
-                if (planetName) {
-                    window.open(planetInfo[planetName].wiki, '_blank');
+            function applyEqPreset(presetName) {
+                const presets = {
+                    flat: [0, 0, 0, 0, 0, 0, 0],
+                    pop: [4, 2, -1, 1, 2, 3, 4],
+                    rock: [5, 3, -2, 1, 3, 5, 6],
+                    jazz: [3, 2, 0, -1, 1, 2, 3],
+                    classical: [4, 3, 1, 0, 1, 3, 4]
+                };
+                
+                const values = presets[presetName] || presets.flat;
+                const bands = document.querySelectorAll('.eq-band');
+                
+                for (let i = 0; i < values.length; i++) {
+                    if (bands[i]) {
+                        bands[i].dataset.value = values[i];
+                        bands[i].querySelector('.eq-band-value').textContent = values[i].toFixed(1) + ' dB';
+                    }
+                    
+                    if (filters[i]) {
+                        filters[i].gain.value = values[i];
+                    }
                 }
             }
-        }
-
-        function findPlanetName(mesh) {
-            for (const [name, planet] of Object.entries(planets)) {
-                if (planet.mesh === mesh) return name;
-            }
-            return null;
-        }
-
-        function updatePlanetSizes() {
-            for (const [name, planet] of Object.entries(planets)) {
-                planet.mesh.scale.set(planetSize, planetSize, planetSize);
-            }
-        }
-
-        function focusOnPlanet(planetName) {
-            const planet = planets[planetName];
-            if (planet) {
-                controls.target.copy(planet.mesh.position);
-                camera.position.set(
-                    planet.mesh.position.x,
-                    planet.mesh.position.y,
-                    planet.mesh.position.z + planet.baseRadius * 3
-                );
-            }
-        }
-
-        function setupStats() {
-            stats = new Stats();
-            stats.showPanel(0);
-            document.body.appendChild(stats.dom);
-            stats.dom.style.left = 'auto';
-            stats.dom.style.right = '0px';
-        }
-
-        function updateFPS() {
-            frameCount++;
-            const currentTime = performance.now();
-            if (currentTime - lastTime >= 1000) {
-                fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
-                document.getElementById('fps-counter').textContent = `${fps} FPS`;
-                frameCount = 0;
-                lastTime = currentTime;
-            }
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
             
-            if (CONFIG.enableStats) stats.begin();
+            function initVisualization() {
+                // Инициализация canvas элементов
+                const canvases = [visualizationWave, visualizationCircles, visualizationParticles];
+                
+                canvases.forEach(canvas => {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                });
+                
+                // Создаем бары для визуализации
+                for (let i = 0; i < 32; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'visualization-bar';
+                    visualizationBars.appendChild(bar);
+                }
+                
+                // Обработчик изменения режима визуализации
+                visualizationMode.addEventListener('change', function() {
+                    // Скрываем все режимы
+                    document.querySelectorAll('.visualization-mode').forEach(mode => {
+                        mode.classList.add('hidden');
+                    });
+                    
+                    // Показываем выбранный режим
+                    document.getElementById('visualization-' + this.value).classList.remove('hidden');
+                    
+                    // Если визуализация активна, перезапускаем её
+                    if (!audioElement.paused && !audioElement.ended) {
+                        stopVisualization();
+                        startVisualization();
+                    }
+                });
+            }
             
-            // Вращение планет
-            for (const [name, planet] of Object.entries(planets)) {
-                if (name !== 'sun') {
-                    planet.angle += planet.speed * rotationSpeed * 0.1;
-                    planet.mesh.position.x = Math.cos(planet.angle) * planet.distance;
-                    planet.mesh.position.z = Math.sin(planet.angle) * planet.distance;
-                    planet.mesh.rotation.y += planet.speed * rotationSpeed;
+            function startVisualization() {
+                if (!analyser) return;
+                
+                const bars = document.querySelectorAll('.visualization-bar');
+                const waveCtx = visualizationWave.getContext('2d');
+                const circlesCtx = visualizationCircles.getContext('2d');
+                const particlesCtx = visualizationParticles.getContext('2d');
+                
+                function draw() {
+                    visualizationRaf = requestAnimationFrame(draw);
+                    
+                    analyser.getByteFrequencyData(visualizationDataArray);
+                    
+                    const mode = visualizationMode.value;
+                    
+                    switch(mode) {
+                        case 'bars':
+                            drawBars(bars);
+                            break;
+                        case 'wave':
+                            drawWave(waveCtx);
+                            break;
+                        case 'circles':
+                            drawCircles(circlesCtx);
+                            break;
+                        case 'particles':
+                            drawParticles(particlesCtx);
+                            break;
+                    }
+                }
+                
+                function drawBars(bars) {
+                    for (let i = 0; i < bars.length; i++) {
+                        const value = visualizationDataArray[i];
+                        const percent = value / 256;
+                        const height = Math.max(2, percent * 100);
+                        bars[i].style.height = height + '%';
+                    }
+                }
+                
+                function drawWave(ctx) {
+                    ctx.clearRect(0, 0, visualizationWave.width, visualizationWave.height);
+                    
+                    ctx.beginPath();
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#4285f4';
+                    
+                    const sliceWidth = visualizationWave.width / analyser.frequencyBinCount;
+                    let x = 0;
+                    
+                    for (let i = 0; i < analyser.frequencyBinCount; i++) {
+                        const v = visualizationDataArray[i] / 128.0;
+                        const y = v * visualizationWave.height / 2;
+                        
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                        
+                        x += sliceWidth;
+                    }
+                    
+                    ctx.stroke();
+                }
+                
+                function drawCircles(ctx) {
+                    ctx.clearRect(0, 0, visualizationCircles.width, visualizationCircles.height);
+                    
+                    const centerX = visualizationCircles.width / 2;
+                    const centerY = visualizationCircles.height / 2;
+                    const maxRadius = Math.min(centerX, centerY) - 10;
+                    
+                    for (let i = 0; i < analyser.frequencyBinCount; i += 4) {
+                        const value = visualizationDataArray[i];
+                        const percent = value / 256;
+                        const radius = percent * maxRadius;
+                        
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                        ctx.fillStyle = `rgba(66, 133, 244, ${0.2 + percent * 0.8})`;
+                        ctx.fill();
+                    }
+                }
+                
+                function drawParticles(ctx) {
+                    ctx.clearRect(0, 0, visualizationParticles.width, visualizationParticles.height);
+                    
+                    const particleCount = 100;
+                    const width = visualizationParticles.width;
+                    const height = visualizationParticles.height;
+                    
+                    for (let i = 0; i < particleCount; i++) {
+                        const index = i % analyser.frequencyBinCount;
+                        const value = visualizationDataArray[index];
+                        const size = 2 + (value / 256) * 8;
+                        
+                        const x = Math.random() * width;
+                        const y = Math.random() * height;
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, size, 0, 2 * Math.PI);
+                        ctx.fillStyle = `rgba(66, 133, 244, ${0.3 + (value / 256) * 0.7})`;
+                        ctx.fill();
+                    }
+                }
+                
+                draw();
+            }
+            
+            function stopVisualization() {
+                if (visualizationRaf) {
+                    cancelAnimationFrame(visualizationRaf);
+                }
+                
+                // Очищаем canvas
+                const canvases = [visualizationWave, visualizationCircles, visualizationParticles];
+                
+                canvases.forEach(canvas => {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                });
+                
+                // Сбрасываем бары
+                const bars = document.querySelectorAll('.visualization-bar');
+                bars.forEach(bar => {
+                    bar.style.height = '2%';
+                });
+            }
+            
+            function initModules() {
+                // Делаем модули перемещаемыми
+                modules.forEach(module => {
+                    const header = module.querySelector('.module-header');
+                    const minimizeBtn = module.querySelector('.minimize-btn');
+                    const closeBtn = module.querySelector('.close-btn');
+                    
+                    // Обработчики для кнопок управления модулями
+                    minimizeBtn.addEventListener('click', function() {
+                        module.classList.toggle('minimized');
+                        this.textContent = module.classList.contains('minimized') ? '+' : '—';
+                    });
+                    
+                    closeBtn.addEventListener('click', function() {
+                        module.style.display = 'none';
+                    });
+                    
+                    // Перетаскивание модулей
+                    let isDragging = false;
+                    let dragOffsetX, dragOffsetY;
+                    
+                    header.addEventListener('mousedown', function(e) {
+                        isDragging = true;
+                        module.classList.add('dragging');
+                        
+                        dragOffsetX = e.clientX - module.offsetLeft;
+                        dragOffsetY = e.clientY - module.offsetTop;
+                        
+                        // Поднимаем модуль выше остальных
+                        modules.forEach(m => {
+                            m.style.zIndex = 1;
+                        });
+                        module.style.zIndex = 10;
+                    });
+                    
+                    document.addEventListener('mousemove', function(e) {
+                        if (!isDragging) return;
+                        
+                        const x = e.clientX - dragOffsetX;
+                        const y = e.clientY - dragOffsetY;
+                        
+                        module.style.left = x + 'px';
+                        module.style.top = y + 'px';
+                        module.style.position = 'absolute';
+                        
+                        // Проверяем, находится ли модуль близко к краям
+                        checkSnapping(module);
+                    });
+                    
+                    document.addEventListener('mouseup', function() {
+                        if (isDragging) {
+                            isDragging = false;
+                            module.classList.remove('dragging');
+                            
+                            // Применяем примагничивание, если необходимо
+                            applySnapping(module);
+                        }
+                    });
+                });
+            }
+            
+            function checkSnapping(module) {
+                const containerRect = mainContainer.getBoundingClientRect();
+                const moduleRect = module.getBoundingClientRect();
+                
+                const snapThreshold = 20;
+                
+                // Проверяем близость к левому краю
+                if (Math.abs(moduleRect.left - containerRect.left) < snapThreshold) {
+                    module.classList.add('snapped-left');
                 } else {
-                    planet.mesh.rotation.y += planet.speed * rotationSpeed;
+                    module.classList.remove('snapped-left');
+                }
+                
+                // Проверяем близость к правому краю
+                if (Math.abs(moduleRect.right - containerRect.right) < snapThreshold) {
+                    module.classList.add('snapped-right');
+                } else {
+                    module.classList.remove('snapped-right');
+                }
+                
+                // Проверяем близость к верхнему краю
+                if (Math.abs(moduleRect.top - containerRect.top) < snapThreshold) {
+                    module.classList.add('snapped-top');
+                } else {
+                    module.classList.remove('snapped-top');
+                }
+                
+                // Проверяем близость к нижнему краю
+                if (Math.abs(moduleRect.bottom - containerRect.bottom) < snapThreshold) {
+                    module.classList.add('snapped-bottom');
+                } else {
+                    module.classList.remove('snapped-bottom');
                 }
             }
             
-            controls.update();
-            renderer.render(scene, camera);
+            function applySnapping(module) {
+                const containerRect = mainContainer.getBoundingClientRect();
+                const moduleRect = module.getBoundingClientRect();
+                
+                if (module.classList.contains('snapped-left')) {
+                    module.style.left = '0px';
+                }
+                
+                if (module.classList.contains('snapped-right')) {
+                    module.style.left = (containerRect.width - moduleRect.width) + 'px';
+                }
+                
+                if (module.classList.contains('snapped-top')) {
+                    module.style.top = '0px';
+                }
+                
+                if (module.classList.contains('snapped-bottom')) {
+                    module.style.top = (containerRect.height - moduleRect.height) + 'px';
+                }
+                
+                // Убираем все классы snapping
+                module.classList.remove('snapped-left', 'snapped-right', 'snapped-top', 'snapped-bottom');
+            }
             
-            updateFPS();
-            if (CONFIG.enableStats) stats.end();
-        }
-
-        // Запуск приложения
-        window.addEventListener('load', init);
-
-        // Service Worker для оффлайн работы (опционально)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(console.error);
-        }
+            function initSources() {
+                // Обработчики для переключения источников аудио
+                sourceButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        // Делаем активной выбранную кнопку
+                        sourceButtons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Показываем соответствующий контент
+                        const sourceType = this.dataset.source;
+                        sourceContents.forEach(content => {
+                            content.classList.add('hidden');
+                        });
+                        document.getElementById(sourceType + '-source').classList.remove('hidden');
+                    });
+                });
+                
+                // Обработчик для выбора локальных файлов
+                audioFileInput.addEventListener('change', function(e) {
+                    const files = e.target.files;
+                    if (files.length > 0) {
+                        addFilesToPlaylist(files);
+                    }
+                });
+                
+                // Обработчик для загрузки потока по URL
+                loadStreamBtn.addEventListener('click', function() {
+                    const url = streamUrlInput.value.trim();
+                    if (url) {
+                        addStreamToPlaylist(url, 'Прямой поток');
+                    }
+                });
+                
+                // Обработчик для выбора радиостанции
+                radioStations.addEventListener('change', function() {
+                    const url = this.value;
+                    const name = this.options[this.selectedIndex].text;
+                    addStreamToPlaylist(url, name);
+                });
+            }
+            
+            function addFilesToPlaylist(files) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const url = URL.createObjectURL(file);
+                    
+                    currentPlaylist.push({
+                        name: file.name,
+                        url: url,
+                        type: 'local'
+                    });
+                    
+                    addToPlaylistUI(file.name, url);
+                }
+                
+                // Если это первый трек, начинаем воспроизведение
+                if (currentPlaylist.length > 0 && currentTrackIndex === -1) {
+                    currentTrackIndex = 0;
+                    playTrack(currentTrackIndex);
+                }
+            }
+            
+            function addStreamToPlaylist(url, name) {
+                currentPlaylist.push({
+                    name: name,
+                    url: url,
+                    type: 'stream'
+                });
+                
+                addToPlaylistUI(name, url);
+                
+                // Если это первый трек, начинаем воспроизведение
+                if (currentPlaylist.length > 0 && currentTrackIndex === -1) {
+                    currentTrackIndex = 0;
+                    playTrack(currentTrackIndex);
+                }
+            }
+            
+            function addToPlaylistUI(name, url) {
+                const item = document.createElement('div');
+                item.className = 'playlist-item';
+                item.dataset.url = url;
+                item.textContent = name;
+                
+                item.addEventListener('click', function() {
+                    const index = Array.from(playlistItems.children).indexOf(this);
+                    currentTrackIndex = index;
+                    playTrack(index);
+                });
+                
+                playlistItems.appendChild(item);
+            }
+            
+            function playTrack(index) {
+                if (index < 0 || index >= currentPlaylist.length) return;
+                
+                const track = currentPlaylist[index];
+                
+                // Обновляем UI плейлиста
+                document.querySelectorAll('.playlist-item').forEach((item, i) => {
+                    if (i === index) {
+                        item.classList.add('playing');
+                    } else {
+                        item.classList.remove('playing');
+                    }
+                });
+                
+                // Устанавливаем источник для аудио элемента
+                audioElement.src = track.url;
+                
+                // Подключаем эквалайзер, если он инициализирован
+                if (audioContext && equalizer) {
+                    // Отключаем предыдущие соединения
+                    if (audioElement.source) {
+                        audioElement.source.disconnect();
+                    }
+                    
+                    // Создаем новый источник
+                    const source = audioContext.createMediaElementSource(audioElement);
+                    audioElement.source = source;
+                    
+                    // Подключаем эквалайзер
+                    source.connect(equalizer);
+                    equalizer.connect(analyser);
+                    
+                    // Подключаем фильтры эквалайзера
+                    if (filters.length > 0) {
+                        // Отключаем предыдущие соединения
+                        equalizer.disconnect();
+                        
+                        // Подключаем цепочку фильтров
+                        let currentNode = equalizer;
+                        
+                        for (let i = 0; i < filters.length; i++) {
+                            currentNode.connect(filters[i]);
+                            currentNode = filters[i];
+                        }
+                        
+                        // Подключаем к анализатору и выходу
+                        currentNode.connect(analyser);
+                    }
+                }
+                
+                // Воспроизводим
+                audioElement.play()
+                    .then(() => {
+                        updateTrackInfo();
+                        startVisualization();
+                    })
+                    .catch(error => {
+                        console.error('Ошибка воспроизведения:', error);
+                    });
+            }
+            
+            function updateTrackInfo() {
+                const track = currentPlaylist[currentTrackIndex];
+                if (track) {
+                    trackInfo.textContent = `Сейчас играет: ${track.name}`;
+                    currentTrackElement.textContent = track.name;
+                }
+            }
+            
+            function updateProgress() {
+                if (audioElement.duration) {
+                    const percent = (audioElement.currentTime / audioElement.duration) * 100;
+                    progressBar.style.width = percent + '%';
+                }
+            }
+            
+            function playNext() {
+                if (currentPlaylist.length === 0) return;
+                
+                currentTrackIndex = (currentTrackIndex + 1) % currentPlaylist.length;
+                playTrack(currentTrackIndex);
+            }
+            
+            function playPrev() {
+                if (currentPlaylist.length === 0) return;
+                
+                currentTrackIndex = (currentTrackIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
+                playTrack(currentTrackIndex);
+            }
+            
+            function setupEventListeners() {
+                // Кнопки управления плеером
+                playBtn.addEventListener('click', function() {
+                    if (currentPlaylist.length > 0) {
+                        audioElement.play()
+                            .then(() => {
+                                startVisualization();
+                            })
+                            .catch(error => {
+                                console.error('Ошибка воспроизведения:', error);
+                            });
+                    }
+                });
+                
+                pauseBtn.addEventListener('click', function() {
+                    audioElement.pause();
+                    stopVisualization();
+                });
+                
+                nextBtn.addEventListener('click', playNext);
+                prevBtn.addEventListener('click', playPrev);
+                
+                // Прогресс-бар
+                progressContainer.addEventListener('click', function(e) {
+                    if (!audioElement.duration) return;
+                    
+                    const rect = this.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const percent = clickX / rect.width;
+                    
+                    audioElement.currentTime = percent * audioElement.duration;
+                });
+                
+                // Создаем эквалайзер после инициализации audioContext
+                if (audioContext) {
+                    equalizer = audioContext.createGain();
+                }
+            }
+        });
     </script>
 </body>
 </html>
