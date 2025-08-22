@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Солнечная система с улучшенной графикой</title>
+    <title>3D Солнечная система с улучшенным интерфейсом</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -46,6 +46,36 @@
             gap: 15px;
             width: 80%;
             max-width: 600px;
+            transition: all 0.3s ease;
+        }
+        
+        .control-panel.collapsed {
+            height: 40px;
+            overflow: hidden;
+            padding: 10px;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .panel-header h3 {
+            color: #4db8ff;
+            margin: 0;
+        }
+        
+        .panel-content {
+            transition: all 0.3s ease;
+        }
+        
+        .control-panel.collapsed .panel-content {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
         }
         
         .slider-container {
@@ -121,6 +151,7 @@
             font-size: 28px;
             text-shadow: 0 0 10px rgba(0, 200, 255, 0.8);
             letter-spacing: 2px;
+            pointer-events: none;
         }
         
         #instructions {
@@ -132,6 +163,7 @@
             font-size: 16px;
             color: #a0d0ff;
             text-shadow: 0 0 5px rgba(0, 100, 255, 0.5);
+            pointer-events: none;
         }
         
         .loading {
@@ -166,10 +198,14 @@
             backdrop-filter: blur(5px);
             box-shadow: 0 0 20px rgba(0, 100, 255, 0.5);
             border: 1px solid rgba(100, 200, 255, 0.3);
-            pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s ease;
             z-index: 200;
+            pointer-events: auto;
+        }
+        
+        .info-card.visible {
+            opacity: 1;
         }
         
         .info-card h3 {
@@ -195,6 +231,7 @@
         
         .info-card a:hover {
             text-decoration: underline;
+            color: #ffcc00;
         }
         
         .modal {
@@ -305,6 +342,38 @@
             color: #a0d0ff;
             text-shadow: 0 0 5px rgba(0, 100, 255, 0.5);
             opacity: 0.8;
+            pointer-events: none;
+        }
+        
+        .controls-hint {
+            position: absolute;
+            bottom: 150px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            color: #a0d0ff;
+            text-shadow: 0 0 5px rgba(0, 100, 255, 0.5);
+            opacity: 0.8;
+            pointer-events: none;
+        }
+        
+        .ui-draggable {
+            cursor: move;
+        }
+        
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #4db8ff;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-btn:hover {
+            color: #ffcc00;
+            transform: scale(1.2);
         }
         
         .info-icon {
@@ -322,18 +391,6 @@
             color: #ffcc00;
             transform: scale(1.2);
         }
-        
-        .controls-hint {
-            position: absolute;
-            bottom: 150px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 14px;
-            color: #a0d0ff;
-            text-shadow: 0 0 5px rgba(0, 100, 255, 0.5);
-            opacity: 0.8;
-        }
     </style>
 </head>
 <body>
@@ -345,33 +402,39 @@
     <div class="camera-hint">Используйте WASD для перемещения, QE для подъема/опускания</div>
     
     <div id="ui">
-        <div class="control-panel">
-            <div class="slider-container">
-                <label>
-                    <span>Скорость вращения:</span>
-                    <span id="speed-value">1.0x</span>
-                </label>
-                <input type="range" id="rotation-speed" min="0" max="2" step="0.1" value="1">
+        <div class="control-panel" id="main-panel">
+            <div class="panel-header">
+                <h3>Управление солнечной системой</h3>
+                <button class="toggle-btn" id="toggle-panel">−</button>
             </div>
-            
-            <div class="slider-container">
-                <label>
-                    <span>Размер планет:</span>
-                    <span id="size-value">1.0x</span>
-                </label>
-                <input type="range" id="planet-size" min="0.5" max="3" step="0.1" value="1">
-            </div>
-            
-            <div class="planet-selector">
-                <div class="planet-btn active" data-planet="sun"><i class="fas fa-sun"></i></div>
-                <div class="planet-btn" data-planet="mercury"><i class="fas fa-circle"></i></div>
-                <div class="planet-btn" data-planet="venus"><i class="fas fa-circle"></i></div>
-                <div class="planet-btn" data-planet="earth"><i class="fas fa-globe-americas"></i></div>
-                <div class="planet-btn" data-planet="mars"><i class="fas fa-circle"></i></div>
-                <div class="planet-btn" data-planet="jupiter"><i class="fas fa-circle"></i></div>
-                <div class="planet-btn" data-planet="saturn"><i class="fas fa-ring"></i></div>
-                <div class="planet-btn" data-planet="uranus"><i class="fas fa-circle"></i></div>
-                <div class="planet-btn" data-planet="neptune"><i class="fas fa-circle"></i></div>
+            <div class="panel-content">
+                <div class="slider-container">
+                    <label>
+                        <span>Скорость вращения:</span>
+                        <span id="speed-value">1.0x</span>
+                    </label>
+                    <input type="range" id="rotation-speed" min="0" max="2" step="0.1" value="1">
+                </div>
+                
+                <div class="slider-container">
+                    <label>
+                        <span>Размер планет:</span>
+                        <span id="size-value">1.0x</span>
+                    </label>
+                    <input type="range" id="planet-size" min="0.5" max="3" step="0.1" value="1">
+                </div>
+                
+                <div class="planet-selector">
+                    <div class="planet-btn active" data-planet="sun" title="Солнце"><i class="fas fa-sun"></i></div>
+                    <div class="planet-btn" data-planet="mercury" title="Меркурий"><i class="fas fa-circle"></i></div>
+                    <div class="planet-btn" data-planet="venus" title="Венера"><i class="fas fa-circle"></i></div>
+                    <div class="planet-btn" data-planet="earth" title="Земля"><i class="fas fa-globe-americas"></i></div>
+                    <div class="planet-btn" data-planet="mars" title="Марс"><i class="fas fa-circle"></i></div>
+                    <div class="planet-btn" data-planet="jupiter" title="Юпитер"><i class="fas fa-circle"></i></div>
+                    <div class="planet-btn" data-planet="saturn" title="Сатурн"><i class="fas fa-ring"></i></div>
+                    <div class="planet-btn" data-planet="uranus" title="Уран"><i class="fas fa-circle"></i></div>
+                    <div class="planet-btn" data-planet="neptune" title="Нептун"><i class="fas fa-circle"></i></div>
+                </div>
             </div>
         </div>
     </div>
@@ -415,6 +478,8 @@
         let moveDown = false;
         let velocity = new THREE.Vector3();
         let direction = new THREE.Vector3();
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
         
         // Информация о планетах
         const planetInfo = {
@@ -519,7 +584,7 @@
             // Создание сцены
             scene = new THREE.Scene();
             
-            // Создание камеры
+            // Создание камера
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 50;
             
@@ -575,7 +640,8 @@
             
             // Обработка выбора планет
             document.querySelectorAll('.planet-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
                     document.querySelectorAll('.planet-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     currentFocus = this.getAttribute('data-planet');
@@ -596,11 +662,60 @@
             // Обработка свободной камеры
             setupFreeCameraControls();
             
+            // Обработка сворачивания/разворачивания панели
+            document.getElementById('toggle-panel').addEventListener('click', function(e) {
+                e.stopPropagation();
+                const panel = document.getElementById('main-panel');
+                panel.classList.toggle('collapsed');
+                this.textContent = panel.classList.contains('collapsed') ? '+' : '−';
+            });
+            
+            // Добавляем возможность перетаскивания панели
+            setupPanelDragging();
+            
             // Скрыть загрузочный экран
             document.getElementById('loading').style.display = 'none';
             
             // Запуск анимации
             animate();
+        }
+
+        // Настройка перетаскивания панели
+        function setupPanelDragging() {
+            const panel = document.getElementById('main-panel');
+            const header = panel.querySelector('.panel-header');
+            
+            header.addEventListener('mousedown', function(e) {
+                if (e.target.classList.contains('toggle-btn')) return;
+                
+                isDragging = true;
+                dragOffset.x = e.clientX - panel.getBoundingClientRect().left;
+                dragOffset.y = e.clientY - panel.getBoundingClientRect().top;
+                panel.style.transition = 'none';
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                const x = e.clientX - dragOffset.x;
+                const y = e.clientY - dragOffset.y;
+                
+                // Ограничиваем положение панели в пределах окна
+                const maxX = window.innerWidth - panel.offsetWidth;
+                const maxY = window.innerHeight - panel.offsetHeight;
+                
+                panel.style.position = 'absolute';
+                panel.style.left = Math.max(0, Math.min(maxX, x)) + 'px';
+                panel.style.top = Math.max(0, Math.min(maxY, y)) + 'px';
+                panel.style.transform = 'none';
+            });
+            
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    panel.style.transition = 'all 0.3s ease';
+                }
+            });
         }
 
         // Настройка управления свободной камерой
@@ -729,7 +844,7 @@
             
             // Добавляем текстуру для Солнца
             const textureLoader = new THREE.TextureLoader();
-            textureLoader.load('https://space-assets-1.s3.us-east-2.amazonaws.com/sun.jpg', function(texture) {
+            const sunTexture = textureLoader.load('https://space-assets-1.s3.us-east-2.amazonaws.com/sun.jpg', function(texture) {
                 material.map = texture;
                 material.needsUpdate = true;
             });
@@ -1086,7 +1201,7 @@
                 <p><strong>Масса:</strong> ${info.mass}</p>
                 <a href="${info.wiki}" target="_blank">Узнать больше в Википедии</a>
             `;
-            infoCard.style.opacity = '1';
+            infoCard.classList.add('visible');
             
             // Подсвечиваем подпись планеты
             const label = document.getElementById(`label-${planetName}`);
@@ -1099,7 +1214,7 @@
 
         // Скрыть информацию о планете
         function hidePlanetInfo() {
-            infoCard.style.opacity = '0';
+            infoCard.classList.remove('visible');
             
             // Убираем подсветку со всех подписей
             document.querySelectorAll('.planet-label').forEach(label => {
