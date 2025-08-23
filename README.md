@@ -386,7 +386,7 @@
     <div id="container"></div>
     
    <div class="music-controls">
-    <button class="music-btn" id="music-toggle">🔊 Музыка ВКЛ</button>
+    <button class="music-btn" id="music-toggle">🔊 </button>
     <input type="range" id="volume-control" min="0" max="1" step="0.1" value="0.3" class="volume-slider">
 </div>
     
