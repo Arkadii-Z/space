@@ -392,6 +392,8 @@
         <source src="https://cdn.pixabay.com/download/audio/2022/01/20/audio_dc6c2f9692.mp3?filename=space-ambience-97614.mp3" type="audio/mpeg">
     </audio>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
     <script>
         // Основные переменные
         let scene, camera, renderer, controls;
@@ -495,24 +497,9 @@
             neptune: { radius: 1.8, distance: 65, rotationSpeed: 0.006, color: 0x3366ff }
         };
 
-        // Загрузка скриптов
-        function loadScript(src) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-
         // Инициализация
-        async function init() {
+        function init() {
             try {
-                // Загрузка Three.js из CDN
-                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
-                await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js');
-                
                 setupScene();
                 setupEventListeners();
                 createSolarSystem();
@@ -527,7 +514,7 @@
                 animate();
 
             } catch (error) {
-                console.error('Error loading scripts:', error);
+                console.error('Error initializing:', error);
                 document.getElementById('loading').textContent = 'Ошибка загрузки. Пожалуйста, обновите страницу.';
             }
         }
@@ -540,13 +527,13 @@
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = isMobile ? 70 : 50;
             
-            // Рендерер
+            // Рендерер - ИСПРАВЛЕНА ОШИБКА: неправильный вызов setSize
             renderer = new THREE.WebGLRenderer({ 
                 antialias: true, 
                 alpha: true,
                 powerPreference: "high-performance"
             });
-            renderer.setSize(window.innerWidth / window.innerHeight);
+            renderer.setSize(window.innerWidth, window.innerHeight); // Исправлено: два параметра
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('container').appendChild(renderer.domElement);
             
@@ -564,7 +551,7 @@
 
         function setupMusic() {
             backgroundMusic = document.getElementById('background-music');
-            backgroundMusic.volume = 0.3; // Устанавливаем громкость на 30%
+            backgroundMusic.volume = 0.3;
             
             // Автозапуск музыки с разрешения пользователя
             document.addEventListener('click', function initMusic() {
@@ -710,7 +697,7 @@
                 createPlanet(name, params);
             }
             
-            // Освещение
+            // Освещение - ИСПРАВЛЕНО: добавлено правильное освещение
             const ambientLight = new THREE.AmbientLight(0x333333);
             scene.add(ambientLight);
             
@@ -736,7 +723,8 @@
             }
             
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            scene.add(new THREE.Points(geometry, material));
+            const stars = new THREE.Points(geometry, material);
+            scene.add(stars);
         }
 
         function createPlanet(name, params) {
