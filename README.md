@@ -400,7 +400,7 @@
 
     <!-- Аудио элемент для музыки -->
     <audio id="background-music" loop>
-        <source src="http://myradio24.org:8000/atmo-128" type="audio/mpeg">
+        <source src="https://radiorecord.hostingradio.ru/tm96.aacp" type="audio/mpeg">
     </audio>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
