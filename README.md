@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -435,7 +434,7 @@
     <div id="container"></div>
     
     <div class="music-controls">
-        <button class="music-btn" id="music-toggle">🔊 Музыка ВКЛ</button>
+        <button class="music-btn" id="music-toggle">🔊</button>
         <input type="range" id="volume-control" min="0" max="1" step="0.1" value="0.3" class="volume-slider">
     </div>
     
@@ -699,10 +698,10 @@
         function updateMusicButton() {
             const btn = document.getElementById('music-toggle');
             if (isMusicPlaying) {
-                btn.textContent = '🔊 Музыка ВКЛ';
+                btn.textContent = '🔊';
                 btn.classList.remove('muted');
             } else {
-                btn.textContent = '🔇 Музыка ВЫКЛ';
+                btn.textContent = '🔇';
                 btn.classList.add('muted');
             }
         }
