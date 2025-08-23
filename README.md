@@ -380,6 +380,65 @@
         width: 60px;
     }
 }
+.settings-gear {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 30, 60, 0.7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 99;
+    border: 2px solid rgba(100, 200, 255, 0.5);
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.settings-gear.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.settings-gear:hover {
+    background: rgba(0, 50, 100, 0.9);
+    transform: rotate(45deg);
+    box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+}
+
+.settings-gear i {
+    font-size: 24px;
+    color: #4db8ff;
+}
+
+/* Анимация вращения */
+@keyframes rotateGear {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.settings-gear.rotating i {
+    animation: rotateGear 2s linear infinite;
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .settings-gear {
+        bottom: 80px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+    }
+    
+    .settings-gear i {
+        font-size: 20px;
+    }
+}
     </style>
 </head>
 <body>
@@ -449,6 +508,11 @@
         <source src="https://radiorecord.hostingradio.ru/tm96.aacp" type="audio/mpeg">
     </audio>
 
+<!-- Шестеренка настроек -->
+ <div id="settings-gear" class="settings-gear">
+        <i class="fas fa-cog"></i>
+    </div>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
     <script>
@@ -570,6 +634,7 @@
                 setupScene();
                 setupEventListeners();
                 createSolarSystem();
+                setupPanelOutsideClick(); 
                 
                 // Создаем информационную карточку
                 createInfoCard();
@@ -655,6 +720,31 @@
         }
 
         function setupEventListeners() {
+           // Обработчик для шестеренки настроек
+document.getElementById('settings-gear').addEventListener('click', function() {
+    const panel = document.getElementById('main-panel');
+    panel.classList.remove('collapsed');
+    document.getElementById('toggle-panel').textContent = '−';
+    this.classList.remove('visible');
+});
+
+// Обновите обработчик сворачивания панели
+document.getElementById('toggle-panel').addEventListener('click', function(e) {
+    e.stopPropagation();
+    const panel = document.getElementById('main-panel');
+    panel.classList.toggle('collapsed');
+    
+    if (panel.classList.contains('collapsed')) {
+        this.textContent = '+';
+        // Показываем шестеренку
+        document.getElementById('settings-gear').classList.add('visible');
+    } else {
+        this.textContent = '−';
+        // Скрываем шестеренку
+        document.getElementById('settings-gear').classList.remove('visible');
+    }
+});
+            
             // Обработка изменения размера
             window.addEventListener('resize', onWindowResize);
             
@@ -731,6 +821,25 @@ volumeSlider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff $
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('click', onPlanetClick);
         }
+
+        function setupPanelOutsideClick() {
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('main-panel');
+        const gear = document.getElementById('settings-gear');
+        const toggleBtn = document.getElementById('toggle-panel');
+        
+        // Если клик не по панели и не по шестеренке, и панель открыта - закрываем
+        if (!panel.contains(e.target) && 
+            !gear.contains(e.target) && 
+            !panel.classList.contains('collapsed') &&
+            e.target !== toggleBtn) {
+            
+            panel.classList.add('collapsed');
+            toggleBtn.textContent = '+';
+            gear.classList.add('visible');
+        }
+    });
+}
 
         function setupTouchControls() {
             let touchStartX, touchStartY;
