@@ -335,14 +335,60 @@
         .music-btn.muted {
             opacity: 0.6;
         }
+        .music-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 30, 60, 0.7);
+    padding: 8px 12px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(100, 200, 255, 0.5);
+}
+
+.volume-slider {
+    width: 80px;
+    height: 6px;
+    -webkit-appearance: none;
+    background: rgba(100, 150, 255, 0.3);
+    border-radius: 3px;
+    outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #4db8ff;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0, 200, 255, 0.8);
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .music-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .volume-slider {
+        width: 60px;
+    }
+}
     </style>
 </head>
 <body>
     <div id="container"></div>
     
-    <div class="music-controls">
-        <button class="music-btn" id="music-toggle">🔊 Музыка ВКЛ</button>
-    </div>
+   <div class="music-controls">
+    <button class="music-btn" id="music-toggle">🔊 Музыка ВКЛ</button>
+    <input type="range" id="volume-control" min="0" max="1" step="0.1" value="0.3" class="volume-slider">
+</div>
     
     <div id="title">СОЛНЕЧНАЯ СИСТЕМА</div>
     <div id="instructions">Наведите на планету для информации, кликните для поиска в Google</div>
@@ -623,7 +669,22 @@
                 document.getElementById('size-value').textContent = planetSize.toFixed(1) + 'x';
                 updatePlanetSizes();
             });
-            
+
+            // Регулятор громкости
+document.getElementById('volume-control').addEventListener('input', (e) => {
+    const volume = parseFloat(e.target.value);
+    backgroundMusic.volume = volume;
+    
+    // Визуальная обратная связь
+    const slider = e.target;
+    slider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff ${volume * 100}%, rgba(100, 150, 255, 0.3) ${volume * 100}%, rgba(100, 150, 255, 0.3) 100%)`;
+});
+
+// Инициализация цвета ползунка
+const volumeSlider = document.getElementById('volume-control');
+const initialVolume = parseFloat(volumeSlider.value);
+volumeSlider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff ${initialVolume * 100}%, rgba(100, 150, 255, 0.3) ${initialVolume * 100}%, rgba(100, 150, 255, 0.3) 100%)`;
+
             // Выбор планет
             document.querySelectorAll('.planet-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
