@@ -646,10 +646,10 @@
         function updateMusicButton() {
             const btn = document.getElementById('music-toggle');
             if (isMusicPlaying) {
-                btn.textContent = '🔊 Музыка ВКЛ';
+                btn.textContent = '🔊';
                 btn.classList.remove('muted');
             } else {
-                btn.textContent = '🔇 Музыка ВЫКЛ';
+                btn.textContent = '🔇';
                 btn.classList.add('muted');
             }
         }
