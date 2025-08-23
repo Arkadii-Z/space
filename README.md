@@ -5,7 +5,7 @@
     <title>3D Солнечная система | Интерактивная модель</title>
     <meta name="description" content="Интерактивная 3D модель Солнечной системы с реалистичными планетами. Исследуйте космос, управляйте скоростью вращения и изучайте планеты!">
     <meta name="keywords" content="солнечная система, 3d модель, планеты, космос, интерактивная, three.js">
-    <meta name="author" content="Ваше Имя">
+    <meta name="author" content="Vova">
     <meta property="og:title" content="3D Солнечная система | Интерактивная модель">
     <meta property="og:description" content="Исследуйте нашу Солнечную систему в интерактивной 3D модели. Управляйте планетами и изучайте космос!">
     <meta property="og:type" content="website">
