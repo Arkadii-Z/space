@@ -150,6 +150,11 @@
             border-color: white;
         }
         
+        .planet-btn.dwarf {
+            border-style: dashed;
+            opacity: 0.8;
+        }
+        
         #title {
             position: absolute;
             top: 10px;
@@ -198,6 +203,11 @@
             border: 1px solid rgba(100, 200, 255, 0.5);
             white-space: nowrap;
             z-index: 10;
+        }
+        
+        .planet-label.dwarf {
+            border-style: dashed;
+            color: #aaa;
         }
         
         .info-card {
@@ -370,6 +380,7 @@
                     <div class="planet-btn" data-planet="saturn" title="Сатурн">♄</div>
                     <div class="planet-btn" data-planet="uranus" title="Уран">♅</div>
                     <div class="planet-btn" data-planet="neptune" title="Нептун">♆</div>
+                    <div class="planet-btn dwarf" data-planet="pluto" title="Плутон (карликовая планета)">♇</div>
                 </div>
             </div>
         </div>
@@ -408,7 +419,7 @@
         let backgroundMusic;
         let isMusicPlaying = false;
 
-        // Информация о планетах
+        // Информация о планетах (добавлен Плутон)
         const planetInfo = {
             sun: {
                 name: "Солнце",
@@ -481,10 +492,19 @@
                 mass: "1.024 × 10^26 кг",
                 wiki: "https://ru.wikipedia.org/wiki/Нептун",
                 search: "Neptune planet"
+            },
+            pluto: {
+                name: "Плутон",
+                description: "Карликовая планета в поясе Койпера. Ранее считался девятой планетой Солнечной системы.",
+                diameter: "2 377 км",
+                mass: "1.303 × 10^22 кг",
+                wiki: "https://ru.wikipedia.org/wiki/Плутон",
+                search: "Pluto dwarf planet",
+                isDwarf: true
             }
         };
 
-        // Параметры планет
+        // Параметры планет (добавлен Плутон)
         const planetParams = {
             sun: { radius: 5, distance: 0, rotationSpeed: 0.001, color: 0xffcc00 },
             mercury: { radius: 0.8, distance: 10, rotationSpeed: 0.004, color: 0xa9a9a9 },
@@ -494,7 +514,8 @@
             jupiter: { radius: 2.8, distance: 35, rotationSpeed: 0.009, color: 0xffcc99 },
             saturn: { radius: 2.4, distance: 45, rotationSpeed: 0.008, color: 0xffdbac },
             uranus: { radius: 1.8, distance: 55, rotationSpeed: 0.007, color: 0x99ccff },
-            neptune: { radius: 1.8, distance: 65, rotationSpeed: 0.006, color: 0x3366ff }
+            neptune: { radius: 1.8, distance: 65, rotationSpeed: 0.006, color: 0x3366ff },
+            pluto: { radius: 0.6, distance: 75, rotationSpeed: 0.005, color: 0xcc9966, isDwarf: true }
         };
 
         // Инициализация
@@ -527,13 +548,13 @@
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = isMobile ? 70 : 50;
             
-            // Рендерер - ИСПРАВЛЕНА ОШИБКА: неправильный вызов setSize
+            // Рендерер
             renderer = new THREE.WebGLRenderer({ 
                 antialias: true, 
                 alpha: true,
                 powerPreference: "high-performance"
             });
-            renderer.setSize(window.innerWidth, window.innerHeight); // Исправлено: два параметра
+            renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('container').appendChild(renderer.domElement);
             
@@ -542,7 +563,7 @@
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.minDistance = 5;
-            controls.maxDistance = 200;
+            controls.maxDistance = 250; // Увеличено для Плутона
             
             // Raycaster для взаимодействия
             raycaster = new THREE.Raycaster();
@@ -634,7 +655,7 @@
                 
                 document.getElementById('zoom-out').addEventListener('click', () => {
                     camera.position.z += 5;
-                    if (camera.position.z > 200) camera.position.z = 200;
+                    if (camera.position.z > 250) camera.position.z = 250;
                 });
                 
                 document.getElementById('reset-camera').addEventListener('click', () => {
@@ -697,7 +718,7 @@
                 createPlanet(name, params);
             }
             
-            // Освещение - ИСПРАВЛЕНО: добавлено правильное освещение
+            // Освещение
             const ambientLight = new THREE.AmbientLight(0x333333);
             scene.add(ambientLight);
             
@@ -740,13 +761,14 @@
             if (name !== 'sun') {
                 mesh.position.x = params.distance;
                 
-                // Орбита
+                // Орбита (пунктирная для карликовых планет)
                 const orbitGeometry = new THREE.RingGeometry(params.distance - 0.1, params.distance + 0.1, 64);
                 const orbitMaterial = new THREE.MeshBasicMaterial({ 
-                    color: 0x4488ff, 
+                    color: params.isDwarf ? 0x888888 : 0x4488ff, 
                     side: THREE.DoubleSide,
                     transparent: true,
-                    opacity: 0.2
+                    opacity: params.isDwarf ? 0.1 : 0.2,
+                    wireframe: params.isDwarf // Пунктирная орбита для карликовых планет
                 });
                 const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
                 orbit.rotation.x = Math.PI / 2;
@@ -756,20 +778,21 @@
             scene.add(mesh);
             
             // Создаем подпись для планеты
-            createPlanetLabel(name, mesh);
+            createPlanetLabel(name, mesh, params.isDwarf);
             
             planets[name] = { 
                 mesh: mesh, 
                 angle: Math.random() * Math.PI * 2,
                 speed: params.rotationSpeed,
                 distance: params.distance,
-                baseRadius: params.radius
+                baseRadius: params.radius,
+                isDwarf: params.isDwarf || false
             };
         }
 
-        function createPlanetLabel(planetName, mesh) {
+        function createPlanetLabel(planetName, mesh, isDwarf) {
             const label = document.createElement('div');
-            label.className = 'planet-label';
+            label.className = 'planet-label' + (isDwarf ? ' dwarf' : '');
             label.textContent = planetInfo[planetName].name;
             label.id = `label-${planetName}`;
             document.body.appendChild(label);
@@ -857,7 +880,7 @@
         function showPlanetInfo(planetName) {
             const info = planetInfo[planetName];
             infoCard.innerHTML = `
-                <h3>${info.name}</h3>
+                <h3>${info.name}${info.isDwarf ? ' (карликовая планета)' : ''}</h3>
                 <p>${info.description}</p>
                 <p><strong>Диаметр:</strong> ${info.diameter}</p>
                 <p><strong>Масса:</strong> ${info.mass}</p>
@@ -868,7 +891,8 @@
             // Подсвечиваем подпись планеты
             const label = document.getElementById(`label-${planetName}`);
             if (label) {
-                label.style.background = 'rgba(0, 50, 100, 0.9)';
+                label.style.background = planets[planetName].isDwarf ? 
+                    'rgba(50, 50, 50, 0.9)' : 'rgba(0, 50, 100, 0.9)';
                 label.style.borderColor = 'rgba(100, 200, 255, 0.8)';
                 label.style.boxShadow = '0 0 10px rgba(100, 200, 255, 0.5)';
             }
@@ -879,7 +903,9 @@
             
             // Убираем подсветку со всех подписей
             document.querySelectorAll('.planet-label').forEach(label => {
-                label.style.background = 'rgba(0, 0, 0, 0.7)';
+                const planetName = label.id.replace('label-', '');
+                const isDwarf = planets[planetName]?.isDwarf;
+                label.style.background = isDwarf ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.7)';
                 label.style.borderColor = 'rgba(100, 200, 255, 0.5)';
                 label.style.boxShadow = 'none';
             });
