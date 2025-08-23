@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -9,8 +10,8 @@
     <meta property="og:title" content="3D Солнечная система | Интерактивная модель">
     <meta property="og:description" content="Исследуйте нашу Солнечную систему в интерактивной 3D модели. Управляйте планетами и изучайте космос!">
     <meta property="og:type" content="website">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌎</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌎</text></svg>">
     <style>
         * {
             margin: 0;
@@ -199,16 +200,19 @@
             border-radius: 8px;
             font-size: 12px;
             pointer-events: none;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, 0);
             transition: all 0.3s ease;
             border: 1px solid rgba(100, 200, 255, 0.5);
             white-space: nowrap;
             z-index: 10;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+            font-weight: bold;
         }
         
         .planet-label.dwarf {
             border-style: dashed;
             color: #aaa;
+            background: rgba(0, 0, 0, 0.5);
         }
         
         .info-card {
@@ -315,140 +319,125 @@
             top: 10px;
             right: 10px;
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 30, 60, 0.7);
+            padding: 8px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(100, 200, 255, 0.5);
         }
         
         .music-btn {
-            background: rgba(0, 30, 60, 0.7);
-            border: 2px solid rgba(100, 200, 255, 0.5);
+            background: none;
+            border: none;
             color: white;
-            padding: 8px 12px;
-            border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
-        }
-        
-        .music-btn:hover {
-            background: rgba(0, 50, 100, 0.9);
+            padding: 0;
         }
         
         .music-btn.muted {
             opacity: 0.6;
         }
-        .music-controls {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(0, 30, 60, 0.7);
-    padding: 8px 12px;
-    border-radius: 20px;
-    backdrop-filter: blur(5px);
-    border: 2px solid rgba(100, 200, 255, 0.5);
-}
+        
+        .volume-slider {
+            width: 80px;
+            height: 6px;
+            -webkit-appearance: none;
+            background: rgba(100, 150, 255, 0.3);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #4db8ff;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 200, 255, 0.8);
+        }
+        
+        .settings-gear {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 30, 60, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 99;
+            border: 2px solid rgba(100, 200, 255, 0.5);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
 
-.volume-slider {
-    width: 80px;
-    height: 6px;
-    -webkit-appearance: none;
-    background: rgba(100, 150, 255, 0.3);
-    border-radius: 3px;
-    outline: none;
-}
+        .settings-gear.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
 
-.volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    background: #4db8ff;
-    cursor: pointer;
-    box-shadow: 0 0 8px rgba(0, 200, 255, 0.8);
-}
+        .settings-gear:hover {
+            background: rgba(0, 50, 100, 0.9);
+            transform: rotate(45deg);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+        }
 
-/* Для мобильных устройств */
-@media (max-width: 768px) {
-    .music-controls {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .volume-slider {
-        width: 60px;
-    }
-}
-.settings-gear {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    background: rgba(0, 30, 60, 0.7);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 99;
-    border: 2px solid rgba(100, 200, 255, 0.5);
-    backdrop-filter: blur(5px);
-    transition: all 0.3s ease;
-    opacity: 0;
-    pointer-events: none;
-}
+        .settings-gear i {
+            font-size: 24px;
+            color: #4db8ff;
+        }
 
-.settings-gear.visible {
-    opacity: 1;
-    pointer-events: auto;
-}
+        /* Анимация вращения */
+        @keyframes rotateGear {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
-.settings-gear:hover {
-    background: rgba(0, 50, 100, 0.9);
-    transform: rotate(45deg);
-    box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
-}
+        .settings-gear.rotating i {
+            animation: rotateGear 2s linear infinite;
+        }
 
-.settings-gear i {
-    font-size: 24px;
-    color: #4db8ff;
-}
-
-/* Анимация вращения */
-@keyframes rotateGear {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.settings-gear.rotating i {
-    animation: rotateGear 2s linear infinite;
-}
-
-/* Для мобильных устройств */
-@media (max-width: 768px) {
-    .settings-gear {
-        bottom: 80px;
-        right: 15px;
-        width: 45px;
-        height: 45px;
-    }
-    
-    .settings-gear i {
-        font-size: 20px;
-    }
-}
+        /* Для мобильных устройств */
+        @media (max-width: 768px) {
+            .music-controls {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .volume-slider {
+                width: 60px;
+            }
+            
+            .settings-gear {
+                bottom: 80px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+            }
+            
+            .settings-gear i {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="container"></div>
     
-   <div class="music-controls">
-    <button class="music-btn" id="music-toggle">🔊 </button>
-    <input type="range" id="volume-control" min="0" max="1" step="0.1" value="0.3" class="volume-slider">
-</div>
+    <div class="music-controls">
+        <button class="music-btn" id="music-toggle">🔊 Музыка ВКЛ</button>
+        <input type="range" id="volume-control" min="0" max="1" step="0.1" value="0.3" class="volume-slider">
+    </div>
     
     <div id="title">СОЛНЕЧНАЯ СИСТЕМА</div>
     <div id="instructions">Наведите на планету для информации, кликните для поиска в Google</div>
@@ -506,14 +495,14 @@
 
     <!-- Аудио элемент для музыки -->
     <audio id="background-music" loop>
-        <source src="https://radiorecord.hostingradio.ru/tm96.aacp" type="audio/mpeg">
+        <source src="http://myradio24.org:8000/atmo-128" type="audio/mpeg">
     </audio>
 
-<!-- Шестеренка настроек -->
- <div id="settings-gear" class="settings-gear">
+    <!-- Шестеренка настроек -->
+    <div id="settings-gear" class="settings-gear">
         <i class="fas fa-cog"></i>
     </div>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
     <script>
@@ -529,8 +518,10 @@
         let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         let backgroundMusic;
         let isMusicPlaying = false;
+        let stars = null;
+        let starTwinkleInterval = null;
 
-        // Информация о планетах (добавлен Плутон)
+        // Информация о планетах
         const planetInfo = {
             sun: {
                 name: "Солнце",
@@ -615,7 +606,7 @@
             }
         };
 
-        // Параметры планет (добавлен Плутон)
+        // Параметры планет
         const planetParams = {
             sun: { radius: 5, distance: 0, rotationSpeed: 0.001, color: 0xffcc00 },
             mercury: { radius: 0.8, distance: 10, rotationSpeed: 0.004, color: 0xa9a9a9 },
@@ -635,13 +626,9 @@
                 setupScene();
                 setupEventListeners();
                 createSolarSystem();
-                setupPanelOutsideClick(); 
-                
-                // Создаем информационную карточку
                 createInfoCard();
-                
-                // Инициализация музыки
                 setupMusic();
+                setupPanelOutsideClick();
                 
                 document.getElementById('loading').style.display = 'none';
                 animate();
@@ -675,7 +662,7 @@
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.minDistance = 5;
-            controls.maxDistance = 250; // Увеличено для Плутона
+            controls.maxDistance = 250;
             
             // Raycaster для взаимодействия
             raycaster = new THREE.Raycaster();
@@ -712,40 +699,15 @@
         function updateMusicButton() {
             const btn = document.getElementById('music-toggle');
             if (isMusicPlaying) {
-                btn.textContent = '🔊';
+                btn.textContent = '🔊 Музыка ВКЛ';
                 btn.classList.remove('muted');
             } else {
-                btn.textContent = '🔇';
+                btn.textContent = '🔇 Музыка ВЫКЛ';
                 btn.classList.add('muted');
             }
         }
 
         function setupEventListeners() {
-           // Обработчик для шестеренки настроек
-document.getElementById('settings-gear').addEventListener('click', function() {
-    const panel = document.getElementById('main-panel');
-    panel.classList.remove('collapsed');
-    document.getElementById('toggle-panel').textContent = '−';
-    this.classList.remove('visible');
-});
-
-// Обновите обработчик сворачивания панели
-document.getElementById('toggle-panel').addEventListener('click', function(e) {
-    e.stopPropagation();
-    const panel = document.getElementById('main-panel');
-    panel.classList.toggle('collapsed');
-    
-    if (panel.classList.contains('collapsed')) {
-        this.textContent = '+';
-        // Показываем шестеренку
-        document.getElementById('settings-gear').classList.add('visible');
-    } else {
-        this.textContent = '−';
-        // Скрываем шестеренку
-        document.getElementById('settings-gear').classList.remove('visible');
-    }
-});
-            
             // Обработка изменения размера
             window.addEventListener('resize', onWindowResize);
             
@@ -760,22 +722,22 @@ document.getElementById('toggle-panel').addEventListener('click', function(e) {
                 document.getElementById('size-value').textContent = planetSize.toFixed(1) + 'x';
                 updatePlanetSizes();
             });
-
+            
             // Регулятор громкости
-document.getElementById('volume-control').addEventListener('input', (e) => {
-    const volume = parseFloat(e.target.value);
-    backgroundMusic.volume = volume;
-    
-    // Визуальная обратная связь
-    const slider = e.target;
-    slider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff ${volume * 100}%, rgba(100, 150, 255, 0.3) ${volume * 100}%, rgba(100, 150, 255, 0.3) 100%)`;
-});
+            document.getElementById('volume-control').addEventListener('input', (e) => {
+                const volume = parseFloat(e.target.value);
+                backgroundMusic.volume = volume;
+                
+                // Визуальная обратная связь
+                const slider = e.target;
+                slider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff ${volume * 100}%, rgba(100, 150, 255, 0.3) ${volume * 100}%, rgba(100, 150, 255, 0.3) 100%)`;
+            });
 
-// Инициализация цвета ползунка
-const volumeSlider = document.getElementById('volume-control');
-const initialVolume = parseFloat(volumeSlider.value);
-volumeSlider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff ${initialVolume * 100}%, rgba(100, 150, 255, 0.3) ${initialVolume * 100}%, rgba(100, 150, 255, 0.3) 100%)`;
-
+            // Инициализация цвета ползунка
+            const volumeSlider = document.getElementById('volume-control');
+            const initialVolume = parseFloat(volumeSlider.value);
+            volumeSlider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff ${initialVolume * 100}%, rgba(100, 150, 255, 0.3) ${initialVolume * 100}%, rgba(100, 150, 255, 0.3) 100%)`;
+            
             // Выбор планет
             document.querySelectorAll('.planet-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -792,7 +754,24 @@ volumeSlider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff $
                 e.stopPropagation();
                 const panel = document.getElementById('main-panel');
                 panel.classList.toggle('collapsed');
-                this.textContent = panel.classList.contains('collapsed') ? '+' : '−';
+                
+                if (panel.classList.contains('collapsed')) {
+                    this.textContent = '+';
+                    // Показываем шестеренку
+                    document.getElementById('settings-gear').classList.add('visible');
+                } else {
+                    this.textContent = '−';
+                    // Скрываем шестеренку
+                    document.getElementById('settings-gear').classList.remove('visible');
+                }
+            });
+            
+            // Обработчик для шестеренки настроек
+            document.getElementById('settings-gear').addEventListener('click', function() {
+                const panel = document.getElementById('main-panel');
+                panel.classList.remove('collapsed');
+                document.getElementById('toggle-panel').textContent = '−';
+                this.classList.remove('visible');
             });
             
             // Управление музыкой
@@ -824,23 +803,23 @@ volumeSlider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff $
         }
 
         function setupPanelOutsideClick() {
-    document.addEventListener('click', function(e) {
-        const panel = document.getElementById('main-panel');
-        const gear = document.getElementById('settings-gear');
-        const toggleBtn = document.getElementById('toggle-panel');
-        
-        // Если клик не по панели и не по шестеренке, и панель открыта - закрываем
-        if (!panel.contains(e.target) && 
-            !gear.contains(e.target) && 
-            !panel.classList.contains('collapsed') &&
-            e.target !== toggleBtn) {
-            
-            panel.classList.add('collapsed');
-            toggleBtn.textContent = '+';
-            gear.classList.add('visible');
+            document.addEventListener('click', function(e) {
+                const panel = document.getElementById('main-panel');
+                const gear = document.getElementById('settings-gear');
+                const toggleBtn = document.getElementById('toggle-panel');
+                
+                // Если клик не по панели и не по шестеренке, и панель открыта - закрываем
+                if (!panel.contains(e.target) && 
+                    !gear.contains(e.target) && 
+                    !panel.classList.contains('collapsed') &&
+                    e.target !== toggleBtn) {
+                    
+                    panel.classList.add('collapsed');
+                    toggleBtn.textContent = '+';
+                    gear.classList.add('visible');
+                }
+            });
         }
-    });
-}
 
         function setupTouchControls() {
             let touchStartX, touchStartY;
@@ -902,21 +881,84 @@ volumeSlider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff $
             const material = new THREE.PointsMaterial({
                 color: 0xffffff,
                 size: 0.2,
-                sizeAttenuation: true
+                sizeAttenuation: true,
+                transparent: true,
+                opacity: 0.8
             });
             
             const vertices = [];
+            const colors = [];
+            const sizes = [];
+            
+            // Создаем 5000 звезд
             for (let i = 0; i < 5000; i++) {
+                // Позиция
                 vertices.push(
                     (Math.random() - 0.5) * 2000,
                     (Math.random() - 0.5) * 2000,
                     (Math.random() - 0.5) * 2000
                 );
+                
+                // Случайный цвет (от голубого до белого)
+                const colorIntensity = 0.7 + Math.random() * 0.3;
+                colors.push(
+                    colorIntensity,
+                    colorIntensity,
+                    colorIntensity
+                );
+                
+                // Случайный размер
+                sizes.push(0.1 + Math.random() * 0.2);
             }
             
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            const stars = new THREE.Points(geometry, material);
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+            
+            material.vertexColors = true;
+            
+            stars = new THREE.Points(geometry, material);
             scene.add(stars);
+            
+            // Запускаем мерцание звезд
+            startStarTwinkling();
+        }
+
+        function startStarTwinkling() {
+            // Останавливаем предыдущий интервал если есть
+            if (starTwinkleInterval) {
+                clearInterval(starTwinkleInterval);
+            }
+            
+            starTwinkleInterval = setInterval(() => {
+                if (!stars) return;
+                
+                const positions = stars.geometry.attributes.position.array;
+                const colors = stars.geometry.attributes.color.array;
+                const sizes = stars.geometry.attributes.size.array;
+                
+                // Мерцание для 2% звезд каждый раз
+                const starsToTwinkle = Math.floor(positions.length / 3 * 0.02);
+                
+                for (let i = 0; i < starsToTwinkle; i++) {
+                    const randomIndex = Math.floor(Math.random() * (positions.length / 3)) * 3;
+                    
+                    // Случайное изменение яркости
+                    const twinkleFactor = 0.5 + Math.random() * 0.5;
+                    
+                    colors[randomIndex] = twinkleFactor;     // R
+                    colors[randomIndex + 1] = twinkleFactor; // G
+                    colors[randomIndex + 2] = twinkleFactor; // B
+                    
+                    // Легкое изменение размера
+                    sizes[randomIndex / 3] = 0.1 + Math.random() * 0.3;
+                }
+                
+                // Обновляем атрибуты
+                stars.geometry.attributes.color.needsUpdate = true;
+                stars.geometry.attributes.size.needsUpdate = true;
+                
+            }, 100); // Обновляем каждые 100ms
         }
 
         function createPlanet(name, params) {
@@ -985,6 +1027,12 @@ volumeSlider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff $
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             updateLabelPositions();
+            
+            // Перезапускаем мерцание при изменении размера
+            if (starTwinkleInterval) {
+                clearInterval(starTwinkleInterval);
+                startStarTwinkling();
+            }
         }
 
         function onMouseMove(event) {
@@ -1014,9 +1062,23 @@ volumeSlider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff $
                 const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
                 const y = -(vector.y * 0.5 - 0.5) * window.innerHeight;
                 
+                // Добавляем смещение для лучшего отображения
+                const offsetX = 0;
+                const offsetY = -30; // Смещение вверх от центра планеты
+                
                 // Обновляем позицию подписи
-                label.element.style.left = x + 'px';
-                label.element.style.top = y + 'px';
+                label.element.style.left = (x + offsetX) + 'px';
+                label.element.style.top = (y + offsetY) + 'px';
+                
+                // Проверяем, видна ли планета на экране
+                const isVisible = (
+                    vector.z > -1 && vector.z < 1 && // В поле зрения камеры
+                    x > 0 && x < window.innerWidth && // В пределах экрана по X
+                    y > 0 && y < window.innerHeight   // В пределах экрана по Y
+                );
+                
+                // Показываем/скрываем подпись в зависимости от видимости
+                label.element.style.display = isVisible ? 'block' : 'none';
             }
         }
 
@@ -1151,6 +1213,13 @@ volumeSlider.style.background = `linear-gradient(to right, #4db8ff 0%, #4db8ff $
             controls.update();
             renderer.render(scene, camera);
         }
+
+        // Очистка при закрытии страницы
+        window.addEventListener('beforeunload', () => {
+            if (starTwinkleInterval) {
+                clearInterval(starTwinkleInterval);
+            }
+        });
 
         // Запуск приложения
         window.addEventListener('load', init);
