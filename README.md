@@ -400,7 +400,7 @@
 
     <!-- Аудио элемент для музыки -->
     <audio id="background-music" loop>
-        <source src="https://cdn.pixabay.com/download/audio/2022/01/20/audio_dc6c2f9692.mp3?filename=space-ambience-97614.mp3" type="audio/mpeg">
+        <source src="http://myradio24.org:8000/atmo-128" type="audio/mpeg">
     </audio>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
